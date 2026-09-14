@@ -1,0 +1,31 @@
+# Python / notebooks
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+.pytest_cache/
+
+# Local secrets and OS files
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+
+# Large local datasets and training artifacts
+data/
+checkpoints/
+wandb/
+*.pt
+*.pth
+*.ckpt
+
+# LaTeX build artifacts (keep PDF submissions)
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk

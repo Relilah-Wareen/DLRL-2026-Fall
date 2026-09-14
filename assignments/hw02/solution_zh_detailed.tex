@@ -1,0 +1,447 @@
+\documentclass[UTF8,a4paper,11pt,fontset=fandol]{ctexart}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage[hidelinks]{hyperref}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\allowdisplaybreaks
+\newcommand{\R}{\mathbb R}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\title{HW2 中文详解}
+\author{00103335：深度学习与强化学习}
+\date{2026 年秋季}
+\begin{document}
+\pagestyle{plain}
+\maketitle
+本文件按原题顺序解释每一步推导。原题见同目录的 \texttt{hw2.pdf}；
+英文解答见 \texttt{solution.pdf}。所有范数都是欧氏范数。
+推导只使用题设条件，不额外假设二阶可微或梯度 Lipschitz 连续。
+
+\section{可微凸函数的三个等价条件}
+题目给定可微函数 $f:\R^d\to\R$，要求证明以下条件等价：
+\begin{align*}
+ \text{(i)}\quad&f(\lambda x+(1-\lambda)y)
+ \leq\lambda f(x)+(1-\lambda)f(y),\quad0<\lambda<1;\\
+ \text{(ii)}\quad&f(y)\geq f(x)+\nabla f(x)^\top(y-x);\\
+ \text{(iii)}\quad&(\nabla f(y)-\nabla f(x))^\top(y-x)\geq0.
+\end{align*}
+三式分别表达凸组合不等式、一阶支撑不等式、梯度的单调性。
+下面证明 (i)$\Leftrightarrow$(ii) 和 (ii)$\Leftrightarrow$(iii)，
+这就把三个条件全部连接起来。
+
+\subsection*{(i)$\Rightarrow$(ii)：让凸组合点趋近端点}
+\textbf{第一步：沿 $x$ 到 $y$ 的线段取点。}
+固定 $x,y$，令 $z_t=x+t(y-x)=(1-t)x+ty$，其中 $0<t<1$。
+对 $z_t$ 使用凸性，得到
+\[
+ f(x+t(y-x))\leq(1-t)f(x)+tf(y).
+\]
+两边减去 $f(x)$，右侧成为
+$(1-t)f(x)+tf(y)-f(x)=t(f(y)-f(x))$。再除以正数 $t$：
+\[
+ \frac{f(x+t(y-x))-f(x)}t\leq f(y)-f(x).
+\]
+
+\textbf{第二步：用可微性计算差商极限。}
+当 $t\downarrow0$ 时，左侧趋于 $f$ 在 $x$ 沿 $y-x$ 的方向导数。
+由于 $f$ 可微，该方向导数等于 $\nabla f(x)^\top(y-x)$，所以
+\[
+ \nabla f(x)^\top(y-x)\leq f(y)-f(x).
+\]
+把 $f(x)$ 移到右侧即为 (ii)。这一步只用了可微性，没有使用 Hessian。
+
+\subsection*{(ii)$\Rightarrow$(i)：在中间点使用两个支撑不等式}
+令 $z=\lambda x+(1-\lambda)y$。把 (ii) 的基点取为 $z$，
+目标点分别取为 $x$ 和 $y$，得到
+\begin{align*}
+ f(x)&\geq f(z)+\nabla f(z)^\top(x-z),\\
+ f(y)&\geq f(z)+\nabla f(z)^\top(y-z).
+\end{align*}
+第一式乘以 $\lambda>0$，第二式乘以 $1-\lambda>0$，再相加：
+\begin{align*}
+ \lambda f(x)+(1-\lambda)f(y)
+ &\geq[\lambda+(1-\lambda)]f(z)\\
+ &\quad+\nabla f(z)^\top[\lambda(x-z)+(1-\lambda)(y-z)].
+\end{align*}
+梯度项中的向量恰好等于零，因为
+\[
+ \lambda(x-z)+(1-\lambda)(y-z)
+ =\lambda x+(1-\lambda)y-[\lambda+(1-\lambda)]z=z-z=0.
+\]
+于是 $\lambda f(x)+(1-\lambda)f(y)\geq f(z)$，即 (i)。
+选取 $z$ 为基点的目的，就是让这两个一阶项在加权相加后抵消。
+
+\subsection*{(ii)$\Rightarrow$(iii)：交换两点后相加}
+对 $(x,y)$ 和 $(y,x)$ 分别使用 (ii)：
+\begin{align*}
+ f(y)-f(x)&\geq\nabla f(x)^\top(y-x),\\
+ f(x)-f(y)&\geq\nabla f(y)^\top(x-y).
+\end{align*}
+相加后左侧为零。右侧利用 $x-y=-(y-x)$ 合并：
+\[
+ 0\geq(\nabla f(x)-\nabla f(y))^\top(y-x).
+\]
+两边乘以 $-1$，不等号反向，得到
+\[
+ (\nabla f(y)-\nabla f(x))^\top(y-x)\geq0.
+\]
+
+\subsection*{(iii)$\Rightarrow$(ii)：沿线段应用一元中值定理}
+当 $x=y$ 时，(ii) 显然为等式。下面设 $x\ne y$，令
+$h=y-x$、$g(t)=f(x+th)$。
+因为 $f$ 可微，$g$ 在 $[0,1]$ 上连续、在 $(0,1)$ 上可微，
+且由链式法则
+\[
+ g'(t)=\nabla f(x+th)^\top h.
+\]
+一元中值定理保证存在 $c\in(0,1)$，使
+\[
+ f(y)-f(x)=g(1)-g(0)=g'(c)(1-0)=\nabla f(x+ch)^\top h.
+\]
+对两点 $x$、$x+ch$ 使用 (iii)：
+\[
+ (\nabla f(x+ch)-\nabla f(x))^\top(ch)\geq0.
+\]
+因为 $c>0$，可以除以 $c$，得到
+\[
+ \nabla f(x+ch)^\top h\geq\nabla f(x)^\top h.
+\]
+结合中值定理的等式，
+$f(y)-f(x)\geq\nabla f(x)^\top(y-x)$，即 (ii)。
+这里使用中值定理，只要求 $g$ 连续和可微，不需要先假设梯度连续。
+
+\section{强凸性的四个等价条件}
+题目将 $\mu$-强凸性定义为
+\[
+ g(x):=f(x)-\frac\mu2\norm x^2\quad\text{是凸函数},\qquad\mu>0.
+\]
+核心做法是把第 1 题的三个凸性条件应用于 $g$。
+首先，$\norm x^2=\sum_{i=1}^d x_i^2$，故
+\[
+ \nabla\left(\frac\mu2\norm x^2\right)=\mu x,
+ \qquad\nabla g(x)=\nabla f(x)-\mu x.
+\]
+
+\subsection*{(i)$\Leftrightarrow$(ii)：凸组合中的二次项差}
+\textbf{第一步：写出 $g$ 的凸组合不等式。}
+设 $z=\alpha x+(1-\alpha)y$，$0<\alpha<1$。$g$ 凸等价于
+\[
+ g(z)\leq\alpha g(x)+(1-\alpha)g(y).
+\]
+代入 $g$ 的定义：
+\[
+ f(z)-\frac\mu2\norm z^2
+ \leq\alpha f(x)+(1-\alpha)f(y)
+ -\frac\mu2\left(\alpha\norm x^2+(1-\alpha)\norm y^2\right).
+\]
+把左侧二次项移到右侧后，
+\[
+ f(z)\leq\alpha f(x)+(1-\alpha)f(y)-\frac\mu2D,
+\]
+其中 $D=\alpha\norm x^2+(1-\alpha)\norm y^2-\norm z^2$。
+
+\textbf{第二步：逐项展开 $D$。}
+由内积的双线性，
+\[
+ \norm{\alpha x+(1-\alpha)y}^2
+ =\alpha^2\norm x^2+2\alpha(1-\alpha)x^\top y+(1-\alpha)^2\norm y^2.
+\]
+于是
+\begin{align*}
+ D&=(\alpha-\alpha^2)\norm x^2
+   +\big((1-\alpha)-(1-\alpha)^2\big)\norm y^2
+   -2\alpha(1-\alpha)x^\top y\\
+ &=\alpha(1-\alpha)\norm x^2
+   +\alpha(1-\alpha)\norm y^2-2\alpha(1-\alpha)x^\top y\\
+ &=\alpha(1-\alpha)\big(\norm x^2+\norm y^2-2x^\top y\big)\\
+ &=\alpha(1-\alpha)\norm{y-x}^2.
+\end{align*}
+第二行分别用了
+$\alpha-\alpha^2=\alpha(1-\alpha)$ 和
+$(1-\alpha)-(1-\alpha)^2=(1-\alpha)\alpha$。
+代回便得到题目中的 (ii)：
+\[
+ \boxed{f(\alpha x+(1-\alpha)y)
+ \leq\alpha f(x)+(1-\alpha)f(y)
+ -\frac\mu2\alpha(1-\alpha)\norm{y-x}^2.}
+\]
+上述代入和移项都是等价变形，所以由 (ii) 也能反推出 $g$ 凸，得到双向蕴含。
+
+\subsection*{(i)$\Leftrightarrow$(iii)：一阶下界中的二次项}
+由第 1 题，$g$ 凸等价于
+\[
+ g(y)\geq g(x)+\nabla g(x)^\top(y-x).
+\]
+代入 $g$ 和 $\nabla g$，得到
+\[
+ f(y)-\frac\mu2\norm y^2
+ \geq f(x)-\frac\mu2\norm x^2
+ +\nabla f(x)^\top(y-x)-\mu x^\top(y-x).
+\]
+把 $\mu\norm y^2/2$ 移到右侧，并将三个含 $\mu$ 的项合并：
+\[
+ f(y)\geq f(x)+\nabla f(x)^\top(y-x)
+ +\frac\mu2\big(\norm y^2-\norm x^2-2x^\top(y-x)\big).
+\]
+括号内展开为
+\begin{align*}
+ \norm y^2-\norm x^2-2x^\top(y-x)
+ &=\norm y^2-\norm x^2-2x^\top y+2x^\top x\\
+ &=\norm y^2+\norm x^2-2x^\top y
+ =\norm{y-x}^2.
+\end{align*}
+所以得到
+\[
+ \boxed{f(y)\geq f(x)+\nabla f(x)^\top(y-x)+\frac\mu2\norm{y-x}^2.}
+\]
+逆向进行同样的代数变形便得到 $g$ 的一阶支撑不等式，再由第 1 题推出 $g$ 凸。
+
+\subsection*{(i)$\Leftrightarrow$(iv)：梯度的强单调性}
+由第 1 题，$g$ 凸等价于 $\nabla g$ 单调，即
+\[
+ (\nabla g(y)-\nabla g(x))^\top(y-x)\geq0.
+\]
+先展开梯度差：
+\[
+ \nabla g(y)-\nabla g(x)
+ =\nabla f(y)-\mu y-\nabla f(x)+\mu x
+ =\nabla f(y)-\nabla f(x)-\mu(y-x).
+\]
+再与 $y-x$ 做内积：
+\begin{align*}
+ (\nabla g(y)-\nabla g(x))^\top(y-x)
+ &=(\nabla f(y)-\nabla f(x))^\top(y-x)
+   -\mu(y-x)^\top(y-x)\\
+ &=(\nabla f(y)-\nabla f(x))^\top(y-x)-\mu\norm{y-x}^2.
+\end{align*}
+因此该表达式非负，恰好等价于
+\[
+ \boxed{(\nabla f(y)-\nabla f(x))^\top(y-x)\geq\mu\norm{y-x}^2.}
+\]
+至此，(ii)、(iii)、(iv) 都分别与 (i) 等价，四个条件的等价性得证。
+
+\section{强凸函数的三个推论}
+本题按原题保留 (ii)、(iii)、(iv) 的编号。为减少长式重复，记
+\[
+ h=y-x,\qquad a=\nabla f(y)-\nabla f(x).
+\]
+由第 2 题 (iv)，已有 $a^\top h\geq\mu\norm h^2$。
+
+\subsection*{(ii) 梯度差的范数下界}
+Cauchy--Schwarz 不等式给出
+$a^\top h\leq|a^\top h|\leq\norm a\norm h$。
+将它与强单调性连接起来，得到
+\[
+ \mu\norm h^2\leq a^\top h\leq\norm a\norm h.
+\]
+如果 $h=0$，那么 $x=y$，也有 $a=0$，所需不等式为 $0\geq0$。
+如果 $h\ne0$，则 $\norm h>0$，两边除以 $\norm h$ 得
+\[
+ \mu\norm h\leq\norm a,
+ \quad\text{即}\quad
+ \boxed{\norm{\nabla f(y)-\nabla f(x)}\geq\mu\norm{y-x}.}
+\]
+这是梯度变化的下界，并非梯度 Lipschitz 连续所要求的上界。
+
+\subsection*{(iii) 用梯度差控制一阶展开的误差}
+\textbf{第一步：在 $y$ 处使用强凸下界。}
+第 2 题 (iii) 对任意基点成立。把基点取为 $y$、目标点取为 $x$：
+\[
+ f(x)\geq f(y)+\nabla f(y)^\top(x-y)+\frac\mu2\norm{x-y}^2.
+\]
+由于 $x-y=-h$，该式为
+$f(x)\geq f(y)-\nabla f(y)^\top h+\mu\norm h^2/2$。
+移项得到
+\[
+ f(y)-f(x)\leq\nabla f(y)^\top h-\frac\mu2\norm h^2.
+\]
+两边减去 $\nabla f(x)^\top h$ 后，
+\[
+ f(y)-f(x)-\nabla f(x)^\top h
+ \leq(\nabla f(y)-\nabla f(x))^\top h-\frac\mu2\norm h^2
+ =a^\top h-\frac\mu2\norm h^2.
+\]
+
+\textbf{第二步：把右侧配成一个平方。}
+先展开
+\[
+ \norm{h-a/\mu}^2
+ =\norm h^2-\frac2\mu a^\top h+\frac1{\mu^2}\norm a^2.
+\]
+两边乘以 $-\mu/2$，得到
+\[
+ -\frac\mu2\norm{h-a/\mu}^2
+ =-\frac\mu2\norm h^2+a^\top h-\frac1{2\mu}\norm a^2.
+\]
+于是
+\[
+ a^\top h-\frac\mu2\norm h^2
+ =\frac1{2\mu}\norm a^2-\frac\mu2\norm{h-a/\mu}^2
+ \leq\frac1{2\mu}\norm a^2.
+\]
+最后一步因为 $\mu>0$ 且平方范数非负，所以被减去的项非负。
+与第一步结合并把 $f(x)+\nabla f(x)^\top h$ 加回去：
+\[
+ \boxed{f(y)\leq f(x)+\nabla f(x)^\top(y-x)
+ +\frac1{2\mu}\norm{\nabla f(y)-\nabla f(x)}^2.}
+\]
+
+\subsection*{(iv) 内积的上界}
+由本题 (ii)，$\norm h\leq\norm a/\mu$。再次使用 Cauchy--Schwarz：
+\[
+ a^\top h\leq\norm a\norm h
+ \leq\norm a\frac{\norm a}{\mu}
+ =\frac1\mu\norm a^2.
+\]
+把 $a,h$ 的定义代回即为
+\[
+ \boxed{(\nabla f(y)-\nabla f(x))^\top(y-x)
+ \leq\frac1\mu\norm{\nabla f(y)-\nabla f(x)}^2.}
+\]
+这里没有除以可能为零的 $\norm a$ 或 $\norm h$，因此也覆盖 $x=y$ 的情况。
+
+\section{递减步长梯度下降的加权平均收敛率}
+题设给定 $\mu$-强凸可微函数 $f$ 及其最小值点 $x^\star$，迭代为
+\[
+ x_{t+1}=x_t-\eta_t\nabla f(x_t),\qquad
+ \eta_t=\frac2{\mu(t+1)},\qquad t=1,\ldots,T.
+\]
+假设仅沿这些迭代点有 $\norm{\nabla f(x_t)}\leq L$。
+这里 $L$ 是梯度范数的上界，不是梯度 Lipschitz 常数。
+记
+\[
+ d_t=\norm{x_t-x^\star},\qquad
+ \Delta_t=f(x_t)-f(x^\star)\geq0,
+ \qquad g_t=\nabla f(x_t).
+\]
+证明的顺序是：用强凸性控制梯度内积，展开距离递推，
+乘上合适权重后求和，最后转成函数值的平均误差。
+
+\subsection*{(a) 梯度内积的下界}
+在第 2 题 (iii) 的强凸下界中，取基点 $x_t$、目标点 $x^\star$：
+\[
+ f(x^\star)\geq f(x_t)+g_t^\top(x^\star-x_t)
+ +\frac\mu2\norm{x^\star-x_t}^2.
+\]
+因为 $x^\star-x_t=-(x_t-x^\star)$ 且
+$\norm{x^\star-x_t}^2=d_t^2$，所以
+\[
+ f(x^\star)\geq f(x_t)-g_t^\top(x_t-x^\star)+\frac\mu2d_t^2.
+\]
+把内积项移到左侧、$f(x^\star)$ 移到右侧，得到
+\[
+ \boxed{g_t^\top(x_t-x^\star)\geq\Delta_t+\frac\mu2d_t^2.}
+\]
+
+\subsection*{(b) 展开一次迭代后的平方距离}
+由更新公式，$x_{t+1}-x^\star=(x_t-x^\star)-\eta_tg_t$。
+套用 $\norm{u-v}^2=\norm u^2-2u^\top v+\norm v^2$，得到
+\begin{align*}
+ d_{t+1}^2
+ &=\norm{(x_t-x^\star)-\eta_tg_t}^2\\
+ &=d_t^2-2\eta_tg_t^\top(x_t-x^\star)+\eta_t^2\norm{g_t}^2.
+\end{align*}
+由 (a)，内积至少为 $\Delta_t+\mu d_t^2/2$。
+因为它前面的系数 $-2\eta_t$ 为负，乘上这个系数后不等号反向：
+\[
+ -2\eta_tg_t^\top(x_t-x^\star)
+ \leq-2\eta_t\left(\Delta_t+\frac\mu2d_t^2\right).
+\]
+同时 $\norm{g_t}^2\leq L^2$。因此
+\begin{align*}
+ d_{t+1}^2
+ &\leq d_t^2-2\eta_t\Delta_t-\mu\eta_td_t^2+\eta_t^2L^2\\
+ &=\boxed{(1-\mu\eta_t)d_t^2-2\eta_t\Delta_t+\eta_t^2L^2}.
+\end{align*}
+
+\subsection*{(c) 选择权重并逐项抵消}
+\textbf{第一步：逐项代入步长。}
+\[
+ 1-\mu\eta_t=1-\frac2{t+1}=\frac{t-1}{t+1},\qquad
+ 2\eta_t=\frac4{\mu(t+1)},\qquad
+ \eta_t^2L^2=\frac{4L^2}{\mu^2(t+1)^2}.
+\]
+所以 (b) 化为
+\[
+ d_{t+1}^2\leq\frac{t-1}{t+1}d_t^2
+ -\frac4{\mu(t+1)}\Delta_t+\frac{4L^2}{\mu^2(t+1)^2}.
+\]
+
+\textbf{第二步：使 $\Delta_t$ 的系数变成题目所需的 $t$。}
+将 $\Delta_t$ 项移到左侧，$d_{t+1}^2$ 移到右侧：
+\[
+ \frac4{\mu(t+1)}\Delta_t
+ \leq\frac{t-1}{t+1}d_t^2-d_{t+1}^2
+ +\frac{4L^2}{\mu^2(t+1)^2}.
+\]
+两边乘以正数 $\mu t(t+1)/4$。各项系数分别化简为
+\begin{align*}
+ \frac{\mu t(t+1)}4\frac4{\mu(t+1)}&=t,\\
+ \frac{\mu t(t+1)}4\frac{t-1}{t+1}&=\frac\mu4t(t-1),\\
+ \frac{\mu t(t+1)}4\frac{4L^2}{\mu^2(t+1)^2}&=\frac{tL^2}{\mu(t+1)}.
+\end{align*}
+得到
+\[
+ t\Delta_t\leq\frac\mu4
+ \left[t(t-1)d_t^2-t(t+1)d_{t+1}^2\right]
+ +\frac{tL^2}{\mu(t+1)}.
+\]
+
+\textbf{第三步：明确哪些项抵消。}
+记 $A_t=t(t-1)d_t^2$，注意
+$A_{t+1}=(t+1)t\,d_{t+1}^2$，所以上式的方括号为 $A_t-A_{t+1}$。
+从 $t=1$ 加到 $T$，
+\begin{align*}
+ \sum_{t=1}^T(A_t-A_{t+1})
+ &=(A_1-A_2)+(A_2-A_3)+\cdots+(A_T-A_{T+1})\\
+ &=A_1-A_{T+1}\qquad(T\geq2).
+\end{align*}
+$T=1$ 时左侧本身也是 $A_1-A_2$，因此同一结论成立。
+初项 $A_1=1\cdot0\cdot d_1^2=0$，末项为
+$A_{T+1}=T(T+1)d_{T+1}^2$。故
+\[
+ \sum_{t=1}^Tt\Delta_t
+ \leq-\frac\mu4T(T+1)d_{T+1}^2
+ +\frac{L^2}{\mu}\sum_{t=1}^T\frac t{t+1}.
+\]
+
+\textbf{第四步：得到题目要求的上界。}
+距离平方非负，因此第一项不大于零，去掉它只会增大右侧。
+每个 $t/(t+1)\leq1$，共 $T$ 项，故
+\[
+ \boxed{\sum_{t=1}^Tt\Delta_t\leq\frac{L^2}{\mu}\,T.}
+\]
+这个权重同时实现了两个目的：让误差项变成 $t\Delta_t$，
+并让相邻距离项的系数完全匹配。初始距离消失是因为 $A_1=0$，
+并非假设初值恰好是最优点。
+
+\subsection*{(d) 从加权误差和得到平均点的收敛率}
+定义
+\[
+ w_t=\frac{2t}{T(T+1)},\qquad
+ \overline x_T=\sum_{t=1}^Tw_tx_t.
+\]
+先验证它确实是凸组合：$w_t>0$，且由等差数列求和公式，
+\[
+ \sum_{t=1}^Tw_t
+ =\frac2{T(T+1)}\sum_{t=1}^Tt
+ =\frac2{T(T+1)}\frac{T(T+1)}2=1.
+\]
+强凸性蕴含凸性：从第 2 题 (ii) 去掉右侧非正的二次修正项，
+就得到普通凸组合不等式。将二点凸性反复应用到有限个点，得到
+\[
+ f\left(\sum_{t=1}^Tw_tx_t\right)\leq\sum_{t=1}^Tw_tf(x_t).
+\]
+由于权重和为 $1$，也有
+$f(x^\star)=\sum_{t=1}^Tw_tf(x^\star)$。两式相减：
+\begin{align*}
+ f(\overline x_T)-f(x^\star)
+ &\leq\sum_{t=1}^Tw_t\big(f(x_t)-f(x^\star)\big)\\
+ &=\frac2{T(T+1)}\sum_{t=1}^Tt\Delta_t\\
+ &\leq\frac2{T(T+1)}\frac{TL^2}{\mu}
+ =\boxed{\frac{2L^2}{\mu(T+1)}}.
+\end{align*}
+在固定 $L$、$\mu$ 的条件下，因 $1/(T+1)\leq1/T$，误差是 $O(1/T)$。
+这个结论针对题目指定的线性加权平均点 $\overline x_T$；
+本证明没有把它替换成最后一次迭代点。
+\end{document}

@@ -1,0 +1,541 @@
+\documentclass[UTF8,a4paper,11pt,fontset=fandol]{ctexart}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage[hidelinks]{hyperref}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\allowdisplaybreaks
+\newcommand{\E}{\mathbb E}
+\newcommand{\R}{\mathbb R}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\rank}{rank}
+\title{HW1 中文详解}
+\author{00103335：深度学习与强化学习}
+\date{2026 年秋季}
+\begin{document}
+\pagestyle{plain}
+\maketitle
+本文件按原题顺序解释每个小问的计算与依据。
+
+同目录文件：原题 \texttt{hw1.pdf}，英文解答 \texttt{solution.pdf}。
+
+矩阵转置记为 $\top$，$\ker X$ 表示 $X$ 的零空间，
+$\operatorname{range}(X)$ 表示列空间。
+
+\section{正交展开下的偏差与方差}
+已知 $m(x)=\sum_{j=1}^Q\theta_j\phi_j(x)$，且
+$\E_X[\phi_j(X)\phi_k(X)]=\delta_{jk}$。
+这里 $\delta_{jk}$ 在 $j=k$ 时为 $1$，否则为 $0$。
+估计系数为 $Z_j=\theta_j+\nu\xi_j/\sqrt n$，其中
+$\xi_j$ 相互独立且服从 $N(0,1)$。
+
+注意区分两种平均：$\E_S$ 对估计系数中的随机性取平均；
+$\E_X$ 对输入分布取平均。函数空间中的平方范数定义为
+\[
+ \norm h_{L^2(P_X)}^2=\E_X[h(X)^2].
+\]
+
+\subsection*{(a) 求子空间内的最佳逼近}
+\textbf{第一步：将待优化的函数写成系数形式。}
+任意 $f\in F_q$ 都可写成 $f=\sum_{j=1}^q a_j\phi_j$，因此
+\[
+ f-m=\sum_{j=1}^q(a_j-\theta_j)\phi_j
+       -\sum_{j=q+1}^Q\theta_j\phi_j.
+\]
+设 $c_j=a_j-\theta_j$（$j\leq q$），$c_j=-\theta_j$（$j>q$）。
+
+\textbf{第二步：展开平方，利用正交性消去交叉项。}
+\begin{align*}
+ \norm{f-m}_{L^2(P_X)}^2
+ &=\E_X\left[\left(\sum_{j=1}^Q c_j\phi_j(X)\right)
+                    \left(\sum_{k=1}^Q c_k\phi_k(X)\right)\right]\\
+ &=\sum_{j=1}^Q\sum_{k=1}^Q c_jc_k\E_X[\phi_j(X)\phi_k(X)]\\
+ &=\sum_{j,k}c_jc_k\delta_{jk}
+ =\sum_{j=1}^Q c_j^2\\
+ &=\sum_{j=1}^q(a_j-\theta_j)^2+\sum_{j=q+1}^Q\theta_j^2.
+\end{align*}
+最后一个和不含待选择的 $a_j$。前一个和是非负平方之和，
+当且仅当每个 $a_j=\theta_j$ 时达到最小值。因此
+\[
+ \boxed{f_q^\star=\sum_{j=1}^q\theta_j\phi_j.}
+\]
+正交归一性保证系数表示唯一，所以最优函数在 $L^2(P_X)$ 意义下唯一。
+当 $q=0$ 时，所有空和按 $0$ 处理，结论为 $f_0^\star=0$。
+
+\subsection*{(b) 求均值与平方偏差}
+\textbf{第一步：对估计系数取平均。}
+因为 $\E\xi_j=0$，
+\[
+ \E_S Z_j=\theta_j+\frac\nu{\sqrt n}\E\xi_j=\theta_j.
+\]
+对固定的 $x$，$\phi_j(x)$ 不是随机量，可以移出期望：
+\[
+ \E_S\widehat f_q(x)=\sum_{j=1}^q(\E_S Z_j)\phi_j(x)
+ =\sum_{j=1}^q\theta_j\phi_j(x)=f_q^\star(x).
+\]
+
+\textbf{第二步：计算平方偏差。}
+平均预测只保留前 $q$ 项，故
+\[
+ \E_S\widehat f_q-m=-\sum_{j=q+1}^Q\theta_j\phi_j,
+ \qquad B_q^2=\norm{\E_S\widehat f_q-m}_{L^2(P_X)}^2
+ =\sum_{j=q+1}^Q\theta_j^2.
+\]
+这里再次用了 (a) 中的正交平方和公式。对 $0\leq q<Q$，
+\[
+ B_{q+1}^2-B_q^2
+ =\sum_{j=q+2}^Q\theta_j^2-\sum_{j=q+1}^Q\theta_j^2
+ =-\theta_{q+1}^2\leq0.
+\]
+因此平方偏差随 $q$ 不增；若新增方向的真实系数为零，就保持不变。
+
+\subsection*{(c) 求方差并证明单调性}
+\textbf{第一步：求系数的协方差。}
+常数 $\theta_j$ 不影响协方差；独立标准正态变量满足
+$\Cov(\xi_j,\xi_k)=\delta_{jk}$，所以
+\[
+ \Cov(Z_j,Z_k)=\frac{\nu^2}{n}\Cov(\xi_j,\xi_k)
+ =\frac{\nu^2}{n}\delta_{jk}.
+\]
+
+\textbf{第二步：先固定 $x$，再对 $X$ 平均。}
+线性组合的方差等于所有协方差项的加权和：
+\begin{align*}
+ \Var_S(\widehat f_q(x))
+ &=\sum_{j,k=1}^q\phi_j(x)\phi_k(x)\Cov(Z_j,Z_k)\\
+ &=\frac{\nu^2}{n}\sum_{j=1}^q\phi_j(x)^2.
+\end{align*}
+每个基函数都有单位平方范数，故
+\[
+ V_q=\E_X[\Var_S(\widehat f_q(X))]
+ =\frac{\nu^2}{n}\sum_{j=1}^q\E_X[\phi_j(X)^2]
+ =\boxed{\frac{q\nu^2}{n}}.
+\]
+于是 $V_{q+1}-V_q=\nu^2/n>0$。每增加一个估计系数，
+就增加一份独立的估计噪声；这是本题方差上升的原因。
+
+\section{过参数化最小二乘与梯度下降}
+现在 $X\in\R^{n\times d}$，$d>n$，且 $\rank X=n$。
+损失为 $\widehat L(b)=\norm{y-Xb}_2^2/(2n)$。
+本题 (b)--(e) 中的收敛结论均采用 (b) 给出的步长条件。
+
+\subsection*{(a) 梯度、更新公式和奇异 Hessian}
+\textbf{第一步：将损失展开成关于 $b$ 的二次式。}
+\begin{align*}
+ (y-Xb)^\top(y-Xb)
+ &=y^\top y-y^\top Xb-b^\top X^\top y+b^\top X^\top Xb\\
+ &=y^\top y-2b^\top X^\top y+b^\top X^\top Xb.
+\end{align*}
+两个交叉项相等，因为它们是互为转置的标量。
+对常向量 $c$，$\nabla_b(b^\top c)=c$；对矩阵 $C$，
+$\nabla_b(b^\top Cb)=(C+C^\top)b$。
+由于 $X^\top X$ 对称，
+\[
+ \nabla\widehat L(b)
+ =\frac1{2n}(-2X^\top y+2X^\top Xb)
+ =\frac1nX^\top(Xb-y).
+\]
+代入 $b_{t+1}=b_t-\eta\nabla\widehat L(b_t)$，得到
+\[
+ \boxed{b_{t+1}=b_t+\frac\eta n X^\top(y-Xb_t).}
+\]
+
+\textbf{第二步：说明 Hessian 为什么不可逆。}
+再求一次导数得到 $\nabla^2\widehat L(b)=X^\top X/n$。
+由秩--零度定理，$\dim\ker X=d-n>0$，因此存在非零 $v$ 使 $Xv=0$。
+对这样的 $v$，$X^\top Xv=X^\top0=0$，所以 Hessian 有非零零向量，必然奇异。
+事实上，$v^\top X^\top Xv=\norm{Xv}_2^2$ 还表明
+$\ker(X^\top X)=\ker X$，故 Hessian 的秩恰为 $n$。
+
+\subsection*{(b) 残差递推与谱分解}
+\textbf{第一步：推导残差递推。}
+定义 $r_t=y-Xb_t$，并记 $A=XX^\top$、$M=I_n-\eta A/n$。于是
+\begin{align*}
+ r_{t+1}
+ &=y-X\left(b_t+\frac\eta nX^\top r_t\right)\\
+ &=(y-Xb_t)-\frac\eta nXX^\top r_t
+ =Mr_t.
+\end{align*}
+由 $b_0=0$ 得 $r_0=y$。反复代入便有 $r_t=M^t y$。
+
+\textbf{第二步：证明 $A$ 正定并对角化。}
+$X$ 满行秩意味着 $X^\top:\R^n\to\R^d$ 是单射。
+若 $u\ne0$，则 $X^\top u\ne0$，因而
+\[
+ u^\top Au=u^\top XX^\top u=\norm{X^\top u}_2^2>0.
+\]
+所以 $A=U\Lambda U^\top$，其中 $U=[u_1,\ldots,u_n]$ 为正交矩阵，
+$\Lambda=\operatorname{diag}(\lambda_1,\ldots,\lambda_n)$，所有 $\lambda_i>0$。
+因此
+\[
+ M=U\operatorname{diag}(1-\eta\lambda_i/n)U^\top,
+ \quad
+ r_t=\sum_{i=1}^n(1-\eta\lambda_i/n)^t(u_i^\top y)u_i.
+\]
+
+\textbf{第三步：控制每个特征方向上的收缩。}
+正交向量展开的范数平方等于系数平方之和。令
+$\rho=\max_i|1-\eta\lambda_i/n|$，则
+\begin{align*}
+ \norm{r_t}_2^2
+ &=\sum_{i=1}^n|1-\eta\lambda_i/n|^{2t}(u_i^\top y)^2\\
+ &\leq\rho^{2t}\sum_{i=1}^n(u_i^\top y)^2
+ =\rho^{2t}\norm y_2^2.
+\end{align*}
+要使第 $i$ 个因子的绝对值小于 $1$，等价于
+\[
+ -1<1-\frac{\eta\lambda_i}{n}<1
+ \quad\Longleftrightarrow\quad
+ 0<\eta<\frac{2n}{\lambda_i}.
+\]
+同时满足所有方向，只需 $0<\eta<2n/\lambda_{\max}(A)$。
+又因为 $\lambda_{\max}(XX^\top)=\norm X_{\rm op}^2$，即最大奇异值的平方，
+这就是题目中的步长范围。两边开平方可得
+\[
+ \boxed{\norm{r_t}_2\leq\rho^t\norm y_2\longrightarrow0.}
+\]
+
+\subsection*{(c) 对更新求和并计算极限}
+\textbf{第一步：把所有增量相加。}
+因为 $b_0=0$ 且 $r_s=M^s y$，
+\[
+ b_t=\sum_{s=0}^{t-1}(b_{s+1}-b_s)
+ =\frac\eta nX^\top\sum_{s=0}^{t-1}M^s y.
+\]
+
+\textbf{第二步：使用矩阵几何级数。}
+设 $S_t=I_n+M+\cdots+M^{t-1}$，则
+\[
+ (I_n-M)S_t=(I_n+M+\cdots+M^{t-1})-(M+\cdots+M^t)=I_n-M^t.
+\]
+$I_n-M=\eta A/n$ 可逆，所以
+\[
+ S_t=(I_n-M)^{-1}(I_n-M^t)=\frac n\eta A^{-1}(I_n-M^t).
+\]
+代回即可约去 $\eta/n$ 与 $n/\eta$：
+\[
+ \boxed{b_t=X^\top(XX^\top)^{-1}
+ \left[I_n-\left(I_n-\frac\eta nXX^\top\right)^t\right]y.}
+\]
+由 (b) 的谱分解，$\norm{M^t}_{\rm op}\leq\rho^t\to0$，于是
+\[
+ b_t\longrightarrow\boxed{b^\dagger=X^\top(XX^\top)^{-1}y}.
+\]
+
+\subsection*{(d) 为什么极限是唯一最小范数插值解}
+先直接验证
+\[
+ Xb^\dagger=XX^\top(XX^\top)^{-1}y=y.
+\]
+所以 $b^\dagger$ 确实插值训练数据。任取另一个满足 $Xb=y$ 的 $b$，
+设 $v=b-b^\dagger$，则 $Xv=y-y=0$。因此所有插值解都可写成
+$b=b^\dagger+v$，其中 $v\in\ker X$。
+
+令 $A=XX^\top$。由于 $A^{-1}$ 对称，
+\[
+ (b^\dagger)^\top v=(X^\top A^{-1}y)^\top v
+ =y^\top A^{-1}Xv=0.
+\]
+即 $b^\dagger$ 与任意这样的 $v$ 正交。展开平方范数：
+\begin{align*}
+ \norm b_2^2
+ &=(b^\dagger+v)^\top(b^\dagger+v)\\
+ &=\norm{b^\dagger}_2^2+2(b^\dagger)^\top v+\norm v_2^2
+ =\norm{b^\dagger}_2^2+\norm v_2^2.
+\end{align*}
+右侧最后一项非负，且仅在 $v=0$ 时为零。
+因此 $b^\dagger$ 是唯一的最小欧氏范数插值解。
+
+\subsection*{(e) 任意初值会保留什么}
+此时初始残差变成 $r_0=y-Xb_0$，但 $r_t=M^t r_0$ 仍然成立。
+沿用 (c) 的求和式，
+\begin{align*}
+ b_t&=b_0+\frac\eta nX^\top\sum_{s=0}^{t-1}M^s(y-Xb_0)\\
+ &=b_0+X^\top A^{-1}(I_n-M^t)(y-Xb_0)\\
+ &\longrightarrow b_0+X^\top A^{-1}y-X^\top A^{-1}Xb_0\\
+ &=b^\dagger+(I_d-P)b_0,\qquad P=X^\top A^{-1}X.
+\end{align*}
+接下来确认 $I_d-P$ 就是零空间的正交投影。计算
+\[
+ P^\top=P,\qquad
+ P^2=X^\top A^{-1}(XX^\top)A^{-1}X=P.
+\]
+对任意行空间中的向量 $X^\top u$，
+\[
+ P(X^\top u)=X^\top A^{-1}Au=X^\top u;
+\]
+对任意 $v\in\ker X$，$Pv=X^\top A^{-1}Xv=0$。
+又有 $\operatorname{range}(X^\top)=(\ker X)^\perp$，因为
+$(X^\top u)^\top v=u^\top Xv=0$，且两空间维数互补。
+所以 $I_d-P=\Pi_{\ker X}$，从而
+\[
+ \boxed{b_t\longrightarrow b^\dagger+\Pi_{\ker X}b_0.}
+\]
+每次更新量都在 $\operatorname{range}(X^\top)$ 中，
+这也解释了为什么初值的零空间分量始终不会改变。
+
+\section{欠参数化最小二乘的投影矩阵}
+此处 $X\in\R^{n\times d}$，$d<n$，且 $\rank X=d$。
+所以对非零 $a\in\R^d$，$a^\top X^\top Xa=\norm{Xa}_2^2>0$，
+$X^\top X$ 可逆。记 $G=(X^\top X)^{-1}$、$H=XGX^\top$。
+
+\subsection*{(a) 对称性与幂等性}
+利用 $(C^{-1})^\top=(C^\top)^{-1}$，
+\[
+ G^\top=((X^\top X)^\top)^{-1}=(X^\top X)^{-1}=G.
+\]
+因此
+\[
+ H^\top=(XGX^\top)^\top=XG^\top X^\top=H.
+\]
+再按矩阵乘法的结合律分组：
+\[
+ H^2=XGX^\top XGX^\top
+ =XG(X^\top X)GX^\top=XGI_dX^\top=H.
+\]
+这就是对称且幂等。
+
+\subsection*{(b) 确定投影到哪个子空间}
+若 $z\in\operatorname{range}(X)$，则 $z=Xa$，于是
+$Hz=XG(X^\top X)a=Xa=z$。
+若 $z\in\ker(X^\top)$，则 $Hz=XG(X^\top z)=0$。
+反过来，先计算
+\[
+ X^\top H=(X^\top X)GX^\top=X^\top.
+\]
+若 $Hz=0$，左乘 $X^\top$ 得 $X^\top z=X^\top Hz=0$。
+故 $\ker H=\ker(X^\top)$。
+
+任意向量都分解为 $z=Hz+(I_n-H)z$。
+第一项在 $\operatorname{range}(X)$ 中；第二项满足
+$X^\top(I_n-H)z=0$，在 $\ker(X^\top)$ 中。
+两个空间正交，因为 $(Xa)^\top v=a^\top X^\top v=0$。
+这说明 $H$ 正是到列空间的正交投影，$I_n-H$ 是到其正交补的投影。
+
+\subsection*{(c) 特征值、迹与对角元素}
+若 $Hu=\lambda u$ 且 $u\ne0$，由 $H^2=H$ 得
+$\lambda^2u=\lambda u$，所以 $\lambda(\lambda-1)=0$。
+特征值只能是 $0$ 或 $1$。
+由 (b)，特征值 $1$ 的空间为 $\operatorname{range}(X)$，维数 $d$；
+特征值 $0$ 的空间为 $\ker(X^\top)$，维数 $n-d$。
+因此
+\[
+ \rank(H)=d,\qquad \tr(H)=d\cdot1+(n-d)\cdot0=d,
+ \qquad\tr(I_n-H)=n-d.
+\]
+对第 $i$ 个标准基向量 $e_i$，
+\[
+ h_{ii}=e_i^\top He_i=e_i^\top H^\top He_i=\norm{He_i}_2^2\geq0.
+\]
+同理，$I_n-H$ 也对称幂等，故
+\[
+ 1-h_{ii}=e_i^\top(I_n-H)e_i=\norm{(I_n-H)e_i}_2^2\geq0.
+\]
+两式合并得到 $0\leq h_{ii}\leq1$；由迹的定义，$\sum_i h_{ii}=d$。
+
+\subsection*{(d) 拟合、残差与最小损失}
+最小二乘的一阶条件为
+\[
+ X^\top(X\widehat b-y)=0
+ \ \Longleftrightarrow\ (X^\top X)\widehat b=X^\top y
+ \ \Longleftrightarrow\ \widehat b=GX^\top y.
+\]
+Hessian $X^\top X/n$ 正定，因此该驻点是唯一最小值点。
+所以拟合向量和残差分别为
+\[
+ \widehat y=X\widehat b=XGX^\top y=Hy,
+ \qquad r=y-\widehat y=(I_n-H)y.
+\]
+由 $X^\top H=X^\top$，
+$X^\top r=(X^\top-X^\top H)y=0$。
+此外
+\[
+ (Hy)^\top r=y^\top H^\top(I_n-H)y
+ =y^\top(H-H^2)y=0.
+\]
+因此展开 $y=Hy+r$ 的平方范数后，交叉项为零：
+\[
+ \norm y_2^2=\norm{Hy}_2^2+2(Hy)^\top r+\norm r_2^2
+ =\norm{Hy}_2^2+\norm{(I_n-H)y}_2^2.
+\]
+将最优残差代回损失得到
+\[
+ \boxed{\min_b\widehat L(b)=\frac1{2n}\norm r_2^2
+ =\frac1{2n}y^\top(I_n-H)y.}
+\]
+最后一个等号使用了 $(I_n-H)^\top(I_n-H)=I_n-H$。
+
+\subsection*{(e) 残差平方和的条件期望}
+已知 $y=X\beta+\eta$，且给定 $X$ 时
+$\E[\eta\mid X]=0$、$\E[\eta\eta^\top\mid X]=\tau^2I_n$。
+记 $K=I_n-H$。先计算
+\[
+ HX=XG(X^\top X)=X,
+ \qquad KX\beta=(X-HX)\beta=0.
+\]
+因此信号项完全被投影到列空间，残差只剩 $Ky=K\eta$。
+又因为 $K^\top K=K$，
+\[
+ \norm{Ky}_2^2=\eta^\top K^\top K\eta=\eta^\top K\eta
+ =\sum_{i=1}^n\sum_{j=1}^nK_{ij}\eta_i\eta_j.
+\]
+给定 $X$ 后 $K$ 固定，而二阶矩条件逐元素写为
+$\E[\eta_i\eta_j\mid X]=\tau^2\delta_{ij}$。故
+\begin{align*}
+ \E[\norm{Ky}_2^2\mid X]
+ &=\sum_{i,j}K_{ij}\E[\eta_i\eta_j\mid X]\\
+ &=\tau^2\sum_{i,j}K_{ij}\delta_{ij}
+ =\tau^2\sum_iK_{ii}
+ =\boxed{\tau^2(n-d)}.
+\end{align*}
+这里仅需要题设的二阶矩条件，不需要额外假设噪声为高斯。
+
+\section{高斯 Gram 矩阵逆的期望}
+设 $Z=[z_1,\ldots,z_p]\in\R^{m\times p}$ 的元素独立服从 $N(0,1)$，
+$m>p+1$，$W=Z^\top Z$。本题先求逆矩阵的单个对角元素，
+再用符号对称性处理非对角元素。
+
+\subsection*{(a) 几乎处处正定}
+依次考虑各列。给定前 $j-1$ 列，它们张成的空间维数至多为
+$j-1<m$，是 $\R^m$ 的真线性子空间，具有零 Lebesgue 测度。
+由于 $z_j$ 独立于前面的列且有连续高斯密度，它落入该子空间的条件概率为零。
+有限次应用这个结论，得到 $p$ 列几乎必然线性无关，即 $\rank Z=p$。
+
+在这个满秩事件上，对所有非零 $a\in\R^p$ 都有 $Za\ne0$，故
+\[
+ a^\top Wa=a^\top Z^\top Za=\norm{Za}_2^2>0.
+\]
+所以 $W$ 几乎处处正定，因而其逆几乎处处存在。
+
+\subsection*{(b) Schur 补如何给出对角元素}
+先考虑 $p>1$。使用置换矩阵 $Q$ 把第 $j$ 列移到第一列，
+使 $ZQ=[z_j,Z_{-j}]$。对应的 Gram 矩阵是
+\[
+ \widetilde W=Q^\top WQ
+ =\begin{pmatrix}a&c^\top\\c&C\end{pmatrix},
+ \quad a=z_j^\top z_j,\quad c=Z_{-j}^\top z_j,\quad C=Z_{-j}^\top Z_{-j}.
+\]
+$C$ 几乎处处正定。为看清 Schur 补公式，设逆矩阵第一列为
+$\binom{u}{v}$。它满足
+\[
+ \begin{pmatrix}a&c^\top\\c&C\end{pmatrix}
+ \binom uv=\binom10,
+ \quad\text{即}\quad
+ au+c^\top v=1,\qquad cu+Cv=0.
+\]
+第二个方程给出 $v=-C^{-1}cu$。代回第一个方程，
+\[
+ (a-c^\top C^{-1}c)u=1,
+ \qquad u=(a-c^\top C^{-1}c)^{-1}.
+\]
+括号中的量就是 $C$ 的 Schur 补。因为
+$\widetilde W^{-1}=Q^\top W^{-1}Q$，该 $u$ 正是原矩阵的 $[W^{-1}]_{jj}$。
+展开 Schur 补得到
+\begin{align*}
+ \{[W^{-1}]_{jj}\}^{-1}
+ &=z_j^\top z_j-z_j^\top Z_{-j}(Z_{-j}^\top Z_{-j})^{-1}Z_{-j}^\top z_j\\
+ &=\boxed{z_j^\top(I_m-P_{-j})z_j}.
+\end{align*}
+当 $p=1$ 时，$W$ 本身就是标量 $z_j^\top z_j$，
+按 $P_{-j}=0$ 的约定，同一公式仍成立。
+
+\subsection*{(c) 为什么自由度是 $m-p+1$}
+$Z_{-j}$ 有 $p-1$ 个线性无关的列，因此
+$P_{-j}$ 是投影到一个 $p-1$ 维空间的正交投影矩阵。
+它的补投影 $K=I_m-P_{-j}$ 的秩为
+\[
+ k=m-(p-1)=m-p+1.
+\]
+条件于 $Z_{-j}$ 后，$K$ 是固定的对称幂等矩阵，可以写成
+\[
+ K=U\operatorname{diag}(I_k,0)U^\top,
+ \qquad U^\top U=I_m.
+\]
+由于各列独立，给定 $Z_{-j}$ 后 $z_j$ 仍服从 $N(0,I_m)$。
+令 $g=U^\top z_j$，则它是高斯向量，均值为零，协方差为
+$U^\top I_mU=I_m$。所以 $g_1,\ldots,g_m$ 仍为独立标准正态变量。
+于是
+\[
+ z_j^\top Kz_j
+ =g^\top\operatorname{diag}(I_k,0)g=\sum_{\ell=1}^k g_\ell^2.
+\]
+由卡方分布的定义，得到
+\[
+ \boxed{z_j^\top(I_m-P_{-j})z_j\mid Z_{-j}\sim\chi^2_{m-p+1}.}
+\]
+
+\subsection*{(d) 卡方倒数的期望}
+对 $U\sim\chi_k^2$，将题目给出的密度乘以 $u^{-1}$ 后积分：
+\[
+ \E[U^{-1}]=\int_0^\infty\frac1u f_U(u)\,du
+ =\frac1{2^{k/2}\Gamma(k/2)}
+ \int_0^\infty u^{k/2-2}e^{-u/2}\,du.
+\]
+\textbf{先判断积分是否收敛。}
+无穷远处的指数衰减保证尾部可积；在零附近，$e^{-u/2}$ 趋近于 $1$，
+因此只需考察 $\int_0^1u^{k/2-2}\,du$。
+幂函数 $u^a$ 在零附近可积当且仅当 $a>-1$，这里等价于 $k>2$。
+所以 $0<k\leq2$ 时，期望为 $+\infty$。
+
+\textbf{当 $k>2$ 时计算积分。}
+令 $u=2v$、$du=2\,dv$，则
+\begin{align*}
+ \E[U^{-1}]
+ &=\frac1{2^{k/2}\Gamma(k/2)}
+   \int_0^\infty(2v)^{k/2-2}e^{-v}\,2\,dv\\
+ &=\frac{2^{k/2-1}}{2^{k/2}\Gamma(k/2)}
+   \int_0^\infty v^{(k/2-1)-1}e^{-v}\,dv\\
+ &=\frac{\Gamma(k/2-1)}{2\Gamma(k/2)}.
+\end{align*}
+用 Gamma 函数递推关系 $\Gamma(a+1)=a\Gamma(a)$，
+\[
+ \Gamma(k/2)=(k/2-1)\Gamma(k/2-1),
+ \qquad \E[U^{-1}]=\frac1{2(k/2-1)}=\frac1{k-2}.
+\]
+结合 (b)、(c)，本题 $k=m-p+1>2$，故
+\[
+ \E[[W^{-1}]_{jj}\mid Z_{-j}]=\frac1{(m-p+1)-2}
+ =\frac1{m-p-1}.
+\]
+右侧不依赖 $Z_{-j}$，再取一次期望，由全期望公式得到
+\[
+ \boxed{\E[[W^{-1}]_{jj}]=\frac1{m-p-1}.}
+\]
+
+\subsection*{(e) 非对角元素为什么均值为零}
+记 $B=W^{-1}$。使用对称性取期望之前，先确认这些元素可积。
+因为 $B$ 正定，它的二阶主子式非负，故
+\[
+ B_{rr}B_{ss}-B_{rs}^2\geq0,
+ \qquad |B_{rs}|\leq\sqrt{B_{rr}B_{ss}}.
+\]
+对随机变量 $\sqrt{B_{rr}}$、$\sqrt{B_{ss}}$ 使用 Cauchy--Schwarz 不等式：
+\[
+ \E|B_{rs}|\leq\E\sqrt{B_{rr}B_{ss}}
+ \leq\sqrt{\E B_{rr}\,\E B_{ss}}
+ =\frac1{m-p-1}<\infty.
+\]
+
+固定 $r\ne s$，令 $D$ 为对角矩阵，其中 $D_{rr}=-1$，其余对角元素为 $1$。
+右乘 $D$ 仅把 $Z$ 的第 $r$ 列变号。标准高斯分布关于零对称，
+而且各列独立，所以 $ZD$ 与 $Z$ 同分布。
+变号后的 Gram 矩阵及其逆为
+\[
+ (ZD)^\top(ZD)=DWD,\qquad
+ (DWD)^{-1}=D^{-1}W^{-1}D^{-1}=DBD,
+\]
+这里用了 $D^{-1}=D$。因此 $DBD$ 与 $B$ 同分布。
+其 $(r,s)$ 元素为
+\[
+ (DBD)_{rs}=D_{rr}B_{rs}D_{ss}=(-1)B_{rs}(1)=-B_{rs}.
+\]
+由于期望已经证明存在，同分布意味着
+$\E B_{rs}=\E[-B_{rs}]=-\E B_{rs}$，故 $\E B_{rs}=0$。
+各对角元素的期望由 (d) 给出，逐元素合并即得
+\[
+ \boxed{\E[W^{-1}]=\frac{I_p}{m-p-1}.}
+\]
+\end{document}

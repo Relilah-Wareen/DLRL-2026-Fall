@@ -1,0 +1,205 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\title{Assignment 2}
+\author{00103335: Deep Learning and Reinforcement Learning}
+\date{Fall 2026}
+\begin{document}
+\maketitle
+All norms are Euclidean. No assumptions beyond those in the questions
+are needed; in particular, no second derivatives or Lipschitz gradient
+assumptions are used.
+
+\section*{Problem 1}
+\textbf{(i)$\Rightarrow$(ii).}
+For $0<t<1$, convexity gives
+\[
+ f(x+t(y-x))=f((1-t)x+ty)\leq(1-t)f(x)+tf(y).
+\]
+Subtract $f(x)$ and divide by $t>0$:
+\[
+ \frac{f(x+t(y-x))-f(x)}t\leq f(y)-f(x).
+\]
+Differentiability gives
+\[
+ \nabla f(x)^\top(y-x)
+ =\lim_{t\downarrow0}\frac{f(x+t(y-x))-f(x)}t
+ \leq f(y)-f(x),
+\]
+which is (ii).
+
+\textbf{(ii)$\Rightarrow$(i).}
+Let $z=\lambda x+(1-\lambda)y$. Apply (ii) with base point $z$
+and endpoints $x,y$, multiply by $\lambda,1-\lambda$, and add:
+\[
+ \lambda f(x)+(1-\lambda)f(y)
+ \geq f(z)+\nabla f(z)^\top
+ [\lambda(x-z)+(1-\lambda)(y-z)]=f(z).
+\]
+
+\textbf{(ii)$\Rightarrow$(iii).}
+Write (ii) in both directions:
+\[
+ f(y)-f(x)\geq\nabla f(x)^\top(y-x),\qquad
+ f(x)-f(y)\geq\nabla f(y)^\top(x-y).
+\]
+Adding cancels the function values and gives
+\[
+ 0\geq\nabla f(x)^\top(y-x)+\nabla f(y)^\top(x-y),
+\]
+which is (iii).
+
+\textbf{(iii)$\Rightarrow$(ii).}
+For $x\ne y$, set $h=y-x$ and $g(t)=f(x+th)$.
+The mean value theorem gives $g(1)-g(0)=g'(c)$ for some $c\in(0,1)$.
+By (iii) at $x,x+ch$,
+\[
+ (\nabla f(x+ch)-\nabla f(x))^\top(ch)\geq0,
+ \qquad g'(c)\geq\nabla f(x)^\top h.
+\]
+This proves (ii); for $x=y$ it is equality.
+
+\section*{Problem 2}
+Define $g(x)=f(x)-\frac\mu2\norm x^2$, so
+$\nabla g(x)=\nabla f(x)-\mu x$.
+
+\textbf{(i)$\Leftrightarrow$(ii).}
+Set $z=\alpha x+(1-\alpha)y$. The convexity inequality for $g$ is
+\[
+ f(z)-\frac\mu2\norm z^2
+ \leq\alpha f(x)+(1-\alpha)f(y)
+ -\frac\mu2\big(\alpha\norm x^2+(1-\alpha)\norm y^2\big).
+\]
+The quadratic difference expands as
+\begin{align*}
+ \alpha\norm x^2+(1-\alpha)\norm y^2-\norm z^2
+ &=(\alpha-\alpha^2)\norm x^2
+   +\big((1-\alpha)-(1-\alpha)^2\big)\norm y^2\\
+ &\quad-2\alpha(1-\alpha)x^\top y\\
+ &=\alpha(1-\alpha)\big(\norm x^2+\norm y^2-2x^\top y\big)\\
+ &=\alpha(1-\alpha)\norm{y-x}^2.
+\end{align*}
+Moving $\mu\norm z^2/2$ to the right therefore gives
+\[
+ f(z)\leq\alpha f(x)+(1-\alpha)f(y)
+ -\frac\mu2\alpha(1-\alpha)\norm{y-x}^2,
+\]
+which is (ii). All the algebraic steps are reversible.
+
+\textbf{(i)$\Leftrightarrow$(iii).}
+By Problem 1, convexity of $g$ is equivalent to
+$g(y)\geq g(x)+\nabla g(x)^\top(y-x)$.
+Substituting the definitions gives
+\[
+ f(y)-\frac\mu2\norm y^2
+ \geq f(x)-\frac\mu2\norm x^2
+ +(\nabla f(x)-\mu x)^\top(y-x).
+\]
+Rearranging yields
+\begin{align*}
+ f(y)&\geq f(x)+\nabla f(x)^\top(y-x)
+ +\frac\mu2\big(\norm y^2-\norm x^2-2x^\top(y-x)\big)\\
+ &=f(x)+\nabla f(x)^\top(y-x)+\frac\mu2\norm{y-x}^2,
+\end{align*}
+because the parenthesis equals
+$\norm y^2+\norm x^2-2x^\top y=\norm{y-x}^2$.
+Reversing these steps proves the converse.
+
+\textbf{(i)$\Leftrightarrow$(iv).}
+Again by Problem 1, convexity of $g$ is equivalent to
+\[
+ 0\leq(\nabla g(y)-\nabla g(x))^\top(y-x)
+ =(\nabla f(y)-\nabla f(x))^\top(y-x)-\mu\norm{y-x}^2,
+\]
+which is (iv). Thus all four conditions are equivalent.
+
+\section*{Problem 3}
+Use the numbering in the question. Write $h=y-x$ and
+$a=\nabla f(y)-\nabla f(x)$.
+
+\textbf{(ii)} Problem 2(iv) and Cauchy--Schwarz give
+\[
+ \mu\norm h^2\leq a^\top h\leq\norm a\norm h.
+\]
+For $h\ne0$, divide by $\norm h$ to obtain $\norm a\geq\mu\norm h$;
+the result is immediate for $h=0$.
+
+\textbf{(iii)} Apply strong convexity with base point $y$:
+\[
+ f(x)\geq f(y)+\nabla f(y)^\top(x-y)+\frac\mu2\norm h^2.
+\]
+Rearranging and completing the square gives
+\begin{align*}
+ f(y)-f(x)-\nabla f(x)^\top h
+ &\leq a^\top h-\frac\mu2\norm h^2\\
+ &=\frac1{2\mu}\norm a^2-\frac\mu2\norm{h-a/\mu}^2
+ \leq\frac1{2\mu}\norm a^2.
+\end{align*}
+
+\textbf{(iv)} By Cauchy--Schwarz and (ii),
+\[
+ a^\top h\leq\norm a\norm h\leq\frac1\mu\norm a^2.
+\]
+
+\section*{Problem 4}
+\textbf{(a)} Strong convexity at $x_t$ implies
+\[
+ f(x^\star)\geq f(x_t)+\nabla f(x_t)^\top(x^\star-x_t)
+ +\frac\mu2 d_t^2.
+\]
+Rearrangement gives
+$\nabla f(x_t)^\top(x_t-x^\star)\geq\Delta_t+\frac\mu2d_t^2$.
+
+\textbf{(b)} Expanding the update and using (a) and the stated bound,
+\begin{align*}
+ d_{t+1}^2
+ &=d_t^2-2\eta_t\nabla f(x_t)^\top(x_t-x^\star)
+ +\eta_t^2\norm{\nabla f(x_t)}^2\\
+ &\leq(1-\mu\eta_t)d_t^2-2\eta_t\Delta_t+\eta_t^2L^2.
+\end{align*}
+
+\textbf{(c)} Substitute $\eta_t=2/[\mu(t+1)]$ into (b):
+\[
+ d_{t+1}^2\leq\frac{t-1}{t+1}d_t^2
+ -\frac4{\mu(t+1)}\Delta_t+\frac{4L^2}{\mu^2(t+1)^2}.
+\]
+Multiplying by $\mu t(t+1)/4$ and rearranging yields
+\[
+ t\Delta_t\leq\frac\mu4
+ \big[t(t-1)d_t^2-t(t+1)d_{t+1}^2\big]
+ +\frac{tL^2}{\mu(t+1)}.
+\]
+To sum, shift the index $s=t+1$ in the negative term:
+\begin{align*}
+ &\sum_{t=1}^T t(t-1)d_t^2-\sum_{t=1}^T t(t+1)d_{t+1}^2\\
+ &\qquad=\sum_{t=1}^T t(t-1)d_t^2
+ -\sum_{s=2}^{T+1}s(s-1)d_s^2
+ =-T(T+1)d_{T+1}^2.
+\end{align*}
+The terms with indices $2,\ldots,T$ cancel and the initial coefficient
+$1(1-1)$ is zero. Thus
+\[
+ \sum_{t=1}^T t\Delta_t
+ \leq-\frac\mu4 T(T+1)d_{T+1}^2
+ +\frac{L^2}\mu\sum_{t=1}^T\frac t{t+1}
+ \leq\frac{TL^2}\mu.
+\]
+
+\textbf{(d)} The weights $w_t=2t/[T(T+1)]$ are nonnegative and satisfy
+\[
+ \sum_{t=1}^T w_t=\frac2{T(T+1)}\sum_{t=1}^Tt
+ =\frac2{T(T+1)}\frac{T(T+1)}2=1.
+\]
+Since $\overline x_T=\sum_{t=1}^T w_t x_t$, convexity gives
+$f(\overline x_T)\leq\sum_{t=1}^T w_t f(x_t)$.
+Subtracting $f(x^\star)=\sum_{t=1}^T w_t f(x^\star)$ and using (c),
+\[
+ f(\overline x_T)-f(x^\star)
+ \leq\sum_{t=1}^T w_t\Delta_t
+ =\frac2{T(T+1)}\sum_{t=1}^Tt\Delta_t
+ \leq\boxed{\frac{2L^2}{\mu(T+1)}}=O(T^{-1}).
+\]
+\end{document}

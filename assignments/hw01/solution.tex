@@ -1,0 +1,253 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\newcommand{\E}{\mathbb E}
+\newcommand{\R}{\mathbb R}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\title{Assignment 1}
+\author{00103335: Deep Learning and Reinforcement Learning}
+\date{Fall 2026}
+\begin{document}
+\maketitle
+
+\section*{Problem 1}
+\textbf{(a)} For $f=\sum_{j=1}^q a_j\phi_j$, write
+$f-m=\sum_{j=1}^Q c_j\phi_j$, where $c_j=a_j-\theta_j$ for $j\leq q$
+and $c_j=-\theta_j$ for $j>q$. Orthonormality gives
+\begin{align*}
+ \norm{f-m}_{L^2(P_X)}^2
+ &=\sum_{j,k=1}^Q c_jc_k\E_X[\phi_j(X)\phi_k(X)]
+ =\sum_{j=1}^Q c_j^2\\
+ &=\sum_{j=1}^q(a_j-\theta_j)^2+\sum_{j=q+1}^Q\theta_j^2.
+\end{align*}
+Thus the unique minimizer is $f_q^\star=\sum_{j=1}^q\theta_j\phi_j$.
+All empty sums below are zero, covering $q=0$.
+
+\textbf{(b)} Since $\E\xi_j=0$,
+\[
+ \E_S\widehat f_q(x)=\sum_{j=1}^q
+ \left(\theta_j+\frac\nu{\sqrt n}\E\xi_j\right)\phi_j(x)
+ =\sum_{j=1}^q\theta_j\phi_j(x)=f_q^\star(x).
+\]
+Consequently, by orthonormality,
+\[
+ B_q^2=\sum_{j=q+1}^Q\theta_j^2,
+ \qquad B_{q+1}^2-B_q^2=-\theta_{q+1}^2\leq0.
+\]
+
+\textbf{(c)} Independence and $\operatorname{Var}(\xi_j)=1$ imply
+$\operatorname{Cov}(Z_j,Z_k)=\nu^2\delta_{jk}/n$. Thus
+\begin{align*}
+ \operatorname{Var}_S(\widehat f_q(x))
+ &=\sum_{j,k=1}^q\phi_j(x)\phi_k(x)\operatorname{Cov}(Z_j,Z_k)
+ =\frac{\nu^2}{n}\sum_{j=1}^q\phi_j(x)^2,\\
+ V_q&=\frac{\nu^2}{n}\sum_{j=1}^q\E_X[\phi_j(X)^2]
+ =\frac{q\nu^2}{n}.
+\end{align*}
+Hence $V_{q+1}-V_q=\nu^2/n>0$.
+
+\section*{Problem 2}
+\textbf{(a)} Expand the quadratic loss:
+\[
+ \widehat L(b)=\frac1{2n}
+ \big(y^\top y-2b^\top X^\top y+b^\top X^\top Xb\big).
+\]
+Since $X^\top X$ is symmetric, differentiation gives
+\[
+ \nabla\widehat L(b)=\frac1n X^\top(Xb-y),\qquad
+ b_{t+1}=b_t+\frac\eta n X^\top(y-Xb_t).
+\]
+The Hessian is $\nabla^2\widehat L(b)=X^\top X/n$.
+For any $v$, $v^\top X^\top Xv=\norm{Xv}_2^2$, so
+$\ker(X^\top X)=\ker X$ has dimension $d-n>0$.
+Thus the Hessian is singular.
+
+\textbf{(b)} Set $A=XX^\top$ and $M=I_n-\eta A/n$. Then
+\[
+ r_{t+1}=y-X\left(b_t+\frac\eta nX^\top r_t\right)=Mr_t,
+ \qquad r_0=y,\qquad r_t=M^t y.
+\]
+Because $X$ has full row rank, $A=U\operatorname{diag}(\lambda_i)U^\top$
+with $U$ orthogonal and $\lambda_i>0$. Therefore
+\[
+ \norm{r_t}_2^2=\sum_{i=1}^n
+ (1-\eta\lambda_i/n)^{2t}(u_i^\top y)^2
+ \leq\rho^{2t}\norm y_2^2,
+ \qquad \rho=\max_i|1-\eta\lambda_i/n|.
+\]
+For $0<\eta<2n/\lambda_{\max}(A)=2n/\norm X_{\mathrm{op}}^2$,
+every absolute value is less than one. Hence $r_t\to0$.
+
+\textbf{(c)} The matrix geometric sum satisfies
+\[
+ (I_n-M)\sum_{s=0}^{t-1}M^s
+ =\sum_{s=0}^{t-1}(M^s-M^{s+1})=I_n-M^t,
+ \qquad (I_n-M)^{-1}=\frac n\eta A^{-1}.
+\]
+Under the step-size condition in (b), summing the updates yields
+\begin{align*}
+ b_t&=\frac\eta n X^\top\sum_{s=0}^{t-1}M^s y
+ =\frac\eta n X^\top(I_n-M)^{-1}(I_n-M^t)y\\
+ &=X^\top(XX^\top)^{-1}
+ \left[I_n-\left(I_n-\frac\eta nXX^\top\right)^t\right]y
+ \longrightarrow b^\dagger:=X^\top(XX^\top)^{-1}y.
+\end{align*}
+
+\textbf{(d)} $Xb^\dagger=AA^{-1}y=y$. Any interpolator $b$ satisfies
+$X(b-b^\dagger)=0$, so $b=b^\dagger+v$ with $v\in\ker X$.
+Also
+\[
+ (b^\dagger)^\top v=y^\top A^{-1}Xv=0,
+ \qquad \norm b_2^2=\norm{b^\dagger}_2^2+\norm v_2^2.
+\]
+The norm is minimized uniquely when $v=0$.
+
+\textbf{(e)} For arbitrary $b_0$, $r_0=y-Xb_0$. The same sum gives
+\[
+ b_t=b_0+X^\top A^{-1}(I_n-M^t)(y-Xb_0)
+ \longrightarrow b^\dagger+(I_d-X^\top A^{-1}X)b_0.
+\]
+For $P=X^\top A^{-1}X$, direct calculation gives
+\[
+ P^\top=P,\qquad
+ P^2=X^\top A^{-1}(XX^\top)A^{-1}X=P.
+\]
+For $u\in\mathbb R^n$ and $v\in\ker X$,
+\[
+ P(X^\top u)=X^\top A^{-1}Au=X^\top u,
+ \qquad Pv=X^\top A^{-1}Xv=0.
+\]
+Hence $P$ projects orthogonally onto $\operatorname{range}(X^\top)$.
+Thus $I_d-P=\Pi_{\ker X}$, proving the claimed limit.
+
+\section*{Problem 3}
+Write $G=(X^\top X)^{-1}$, which is symmetric.
+
+\textbf{(a)} $H^\top=(XGX^\top)^\top=H$ and
+$H^2=XG(X^\top X)GX^\top=H$.
+
+\textbf{(b)} If $z=Xa$, then $Hz=XG(X^\top X)a=z$.
+If $X^\top z=0$, then $Hz=0$. Conversely, $Hz=0$ implies
+$X^\top z=X^\top Hz=0$.
+Thus $H$ is the orthogonal projector onto $\operatorname{range}(X)$;
+$I_n-H$ projects onto its orthogonal complement $\ker(X^\top)$.
+
+\textbf{(c)} These orthogonal subspaces have dimensions $d$ and $n-d$,
+so the eigenvalues of $H$ are $1$ (multiplicity $d$) and $0$
+(multiplicity $n-d$). Consequently
+\[
+ \operatorname{rank}(H)=\operatorname{tr}(H)=d,\qquad
+ \operatorname{tr}(I_n-H)=n-d.
+\]
+For each coordinate vector $e_i$,
+$h_{ii}=e_i^\top H e_i=\norm{He_i}_2^2\geq0$ and
+$1-h_{ii}=\norm{(I_n-H)e_i}_2^2\geq0$.
+Also $\sum_i h_{ii}=\operatorname{tr}(H)=d$.
+
+\textbf{(d)} At a minimizer,
+\[
+ 0=\nabla\widehat L(\widehat b)
+ =\frac1n X^\top(X\widehat b-y)
+ \quad\Longrightarrow\quad
+ (X^\top X)\widehat b=X^\top y
+ \quad\Longrightarrow\quad\widehat b=GX^\top y.
+\]
+The positive definite Hessian $X^\top X/n$ ensures this is the unique
+minimizer. Hence
+$\widehat y=Hy$ and $r=(I_n-H)y$.
+Since $X^\top(I_n-H)=0$, $X^\top r=0$. Moreover,
+$(Hy)^\top r=y^\top H(I_n-H)y=0$, so
+\[
+ \norm y_2^2=\norm{Hy}_2^2+\norm{(I_n-H)y}_2^2,\qquad
+ \min_b\frac1{2n}\norm{y-Xb}_2^2
+ =\frac1{2n}\norm r_2^2=\frac1{2n}y^\top(I_n-H)y.
+\]
+
+\textbf{(e)} Since $HX=X$, $(I_n-H)X\beta=0$. Put $K=I_n-H$;
+$K^\top K=K$ and $Ky=K\eta$. Thus
+\begin{align*}
+ \E[\norm{(I_n-H)y}_2^2\mid X]
+ &=\E[\eta^\top K\eta\mid X]\\
+ &=\sum_{i,j=1}^n K_{ij}\E[\eta_i\eta_j\mid X]
+ =\tau^2\sum_{i,j=1}^n K_{ij}\delta_{ij}\\
+ &=\tau^2\operatorname{tr}(K)=\tau^2(n-d).
+\end{align*}
+
+\section*{Problem 4}
+\textbf{(a)} Conditional on the preceding columns, each new Gaussian
+column has a density and therefore has probability zero of belonging
+to their proper linear span in $\R^m$. Hence $Z$ has rank $p$ almost
+surely. For $a\ne0$, $a^\top Wa=\norm{Za}_2^2>0$ almost surely.
+
+\textbf{(b)} For $p>1$, let $Q$ permute column $j$ to the first position,
+so $ZQ=[z_j,Z_{-j}]$. Then
+\[
+ \widetilde W=Q^\top WQ=\begin{pmatrix}
+ z_j^\top z_j&z_j^\top Z_{-j}\\
+ Z_{-j}^\top z_j&Z_{-j}^\top Z_{-j}
+ \end{pmatrix}.
+\]
+Since $\widetilde W^{-1}=Q^\top W^{-1}Q$,
+$[\widetilde W^{-1}]_{11}=[W^{-1}]_{jj}$.
+The Schur complement of $Z_{-j}^\top Z_{-j}$ is
+\[
+ S=z_j^\top z_j-z_j^\top Z_{-j}(Z_{-j}^\top Z_{-j})^{-1}Z_{-j}^\top z_j
+ =z_j^\top(I_m-P_{-j})z_j.
+\]
+The Schur-complement inverse formula gives
+\[
+ [W^{-1}]_{jj}
+ =[\widetilde W^{-1}]_{11}=S^{-1}
+ =\big(z_j^\top(I_m-P_{-j})z_j\big)^{-1}.
+\]
+For $p=1$, this is the scalar inverse with $P_{-j}=0$.
+
+\textbf{(c)} Conditional on $Z_{-j}$, $I_m-P_{-j}$ is an orthogonal
+projector of rank $k=m-(p-1)=m-p+1$. Thus, for an orthogonal $U$,
+\[
+ I_m-P_{-j}=U\operatorname{diag}(I_k,0)U^\top.
+\]
+Conditional on $Z_{-j}$, the independent $z_j\sim N(0,I_m)$ satisfies
+$g=U^\top z_j\sim N(0,U^\top U)=N(0,I_m)$. Therefore
+\[
+ z_j^\top(I_m-P_{-j})z_j\mid Z_{-j}
+ \ \overset{d}=\ \sum_{\ell=1}^{k}g_\ell^2\sim\chi_k^2,
+ \qquad g_\ell\overset{\mathrm{iid}}\sim N(0,1).
+\]
+
+\textbf{(d)} For $k>2$, substitute $u=2v$, $du=2\,dv$:
+\begin{align*}
+ \E[U^{-1}]
+ &=\frac{1}{2^{k/2}\Gamma(k/2)}
+ \int_0^\infty u^{k/2-2}e^{-u/2}\,du\\
+ &=\frac{2^{k/2-1}}{2^{k/2}\Gamma(k/2)}
+ \int_0^\infty v^{k/2-2}e^{-v}\,dv
+ =\frac{\Gamma(k/2-1)}{2\Gamma(k/2)}\\
+ &=\frac{1}{2(k/2-1)}=\frac1{k-2},
+\end{align*}
+where $\Gamma(k/2)=(k/2-1)\Gamma(k/2-1)$.
+For $0<k\leq2$, the integrand behaves as $u^{k/2-2}$ near zero,
+so the integral diverges. Here $k=m-p+1>2$; by (b)--(c),
+\[
+ \E[[W^{-1}]_{jj}]
+ =\E\!\left[\E\!\left[(z_j^\top(I_m-P_{-j})z_j)^{-1}\mid Z_{-j}\right]\right]
+ =\frac1{m-p-1}.
+\]
+
+\textbf{(e)} Put $B=W^{-1}$. Positive definiteness gives
+$|B_{rs}|\leq\sqrt{B_{rr}B_{ss}}$, so Cauchy--Schwarz and (d) imply
+\[
+ \E|B_{rs}|\leq\sqrt{\E B_{rr}\,\E B_{ss}}
+ =\frac1{m-p-1}<\infty.
+\]
+For $r\ne s$, let $D$ be diagonal with $D_{rr}=-1$ and all other
+diagonal entries $1$. The Gaussian sign symmetry gives
+$ZD\overset d=Z$, hence $DBD\overset d=B$.
+Its $(r,s)$ entry is $-B_{rs}$, so $\E B_{rs}=0$.
+Together with (d), this proves
+\[
+ \boxed{\E[W^{-1}]=\frac{I_p}{m-p-1}.}
+\]
+\end{document}

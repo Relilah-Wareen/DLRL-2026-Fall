@@ -1,0 +1,175 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\allowdisplaybreaks
+\newcommand{\E}{\mathbb E}
+\newcommand{\Pp}{\mathbb P}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\title{Assignment 3}
+\author{00103335: Deep Learning and Reinforcement Learning}
+\date{Fall 2026}
+\begin{document}
+\maketitle
+
+\section*{Problem 1}
+Write $v_t=\E|\delta_t|^4$ and $q_t=1-\lambda\eta_t\in[0,1]$.
+Conditional H\"older gives, for $r=2,3$,
+\[
+ \E[|\xi_t|^r\mid\mathcal F_t]
+ \leq\big(\E[|\xi_t|^4\mid\mathcal F_t]\big)^{r/4}\leq\sigma^r.
+\]
+Moreover, $|u+v|^4\leq8(|u|^4+|v|^4)$ yields
+$v_{t+1}\leq8v_t+8\eta_t^4\sigma^4$, so every $v_t$ is finite by induction.
+
+\textbf{(a)} Expanding conditionally and using $\E[\xi_t\mid\mathcal F_t]=0$,
+\begin{align*}
+ \E[|\delta_{t+1}|^4\mid\mathcal F_t]
+ &=q_t^4\delta_t^4
+ +6q_t^2\eta_t^2\delta_t^2\E[\xi_t^2\mid\mathcal F_t]\\
+ &\quad+4q_t\eta_t^3\delta_t\E[\xi_t^3\mid\mathcal F_t]
+ +\eta_t^4\E[\xi_t^4\mid\mathcal F_t]\\
+ &\leq q_t^4\delta_t^4+6\sigma^2\eta_t^2\delta_t^2
+ +4\sigma^3\eta_t^3|\delta_t|+\sigma^4\eta_t^4.
+\end{align*}
+The inequality $2uv\leq u^2+v^2$ gives
+\[
+ 4\sigma^3\eta_t^3|\delta_t|
+ \leq2\sigma^2\eta_t^2\delta_t^2+2\sigma^4\eta_t^4.
+\]
+For any $\varepsilon>0$, completing the square gives
+\[
+ 8\sigma^2\eta_t^2\delta_t^2
+ \leq\varepsilon\eta_t\delta_t^4
+       +\frac{16\sigma^4}{\varepsilon}\eta_t^3.
+\]
+Fix $c\in(0,4\lambda)$ and set $\varepsilon=(4\lambda-c)/2$.
+For $0\leq x\leq1$, $(1-x)^4\leq1-4x+6x^2$.
+Since $\eta_t\to0$, eventually $\eta_t\leq1$ and
+$6\lambda^2\eta_t\leq\varepsilon$. Hence
+\[
+ q_t^4+\varepsilon\eta_t
+ \leq1-(4\lambda-\varepsilon)\eta_t+6\lambda^2\eta_t^2
+ \leq1-c\eta_t.
+\]
+Taking expectations and using $\eta_t^4\leq\eta_t^3$ proves
+\[
+ \boxed{v_{t+1}\leq(1-c\eta_t)v_t+C_0\eta_t^3},
+ \qquad C_0=\left(\frac{16}{\varepsilon}+3\right)\sigma^4.
+\]
+
+\textbf{(b)} Define the relative decrease on the scale $\eta_t$ by
+\[
+ D_t=\frac{\eta_t^2-\eta_{t+1}^2}{\eta_t^3}
+ =\frac{(t+t_0)^\alpha}{a}
+ \left[1-\left(1+\frac1{t+t_0}\right)^{-2\alpha}\right].
+\]
+With $s=t+t_0$, the mean value theorem gives
+$1-(1+1/s)^{-2\alpha}=(2\alpha/s)(1+\zeta_s)^{-2\alpha-1}$
+for some $0<\zeta_s<1/s$. Thus
+\[
+ D_t\longrightarrow d_*:=
+ \begin{cases}0,&\alpha<1,\\2/a,&\alpha=1.\end{cases}
+\]
+In both cases $d_*<4\lambda$: for $\alpha=1$ this is exactly
+$2\lambda a>1$. Choose $d_*<d<c<4\lambda$ and apply (a) with this $c$.
+For some $N$, all $t\geq N$ satisfy its recursion, $D_t\leq d$, and
+$c\eta_t\leq1$. Choose a finite constant
+\[
+ C\geq\max\left\{\frac{C_0}{c-d},\ \max_{1\leq t\leq N}\frac{v_t}{\eta_t^2}\right\}.
+\]
+If $v_t\leq C\eta_t^2$ for $t\geq N$, then
+\begin{align*}
+ v_{t+1}&\leq(1-c\eta_t)C\eta_t^2+C_0\eta_t^3\\
+ &\leq C\eta_t^2-Cd\eta_t^3
+ \leq C(\eta_t^2-D_t\eta_t^3)=C\eta_{t+1}^2.
+\end{align*}
+Induction, together with the choice of $C$ for $t\leq N$, proves
+$\boxed{\E|\delta_t|^4\leq C\eta_t^2}$ for every $t$.
+
+\textbf{(c)} For $M>0$, Markov's inequality and (b) give
+\[
+ \Pp\big(|\delta_t|>M\sqrt{\eta_t}\big)
+ \leq\frac{\E|\delta_t|^4}{M^4\eta_t^2}\leq\frac C{M^4}.
+\]
+For every $\epsilon>0$, choose $M$ such that $C/M^4<\epsilon$.
+This proves $\delta_t=O_P(\sqrt{\eta_t})$.
+
+\textbf{(d)} Since $2\alpha>1$, $\sum_{t\geq1}\eta_t^2<\infty$.
+For any integer $k\geq1$,
+\[
+ \sum_{t=1}^\infty\Pp(|\delta_t|>1/k)
+ \leq k^4\sum_{t=1}^\infty v_t
+ \leq Ck^4\sum_{t=1}^\infty\eta_t^2<\infty.
+\]
+The first Borel--Cantelli lemma implies $|\delta_t|\leq1/k$ eventually
+almost surely. Intersecting these probability-one events over $k$ proves
+$\boxed{\delta_t\to0\text{ almost surely}}$. No independence is needed.
+
+\section*{Problem 2}
+Let $e_t=\theta_t-\theta^\star$ and
+$\Delta_t=\Phi(\theta_t)-\Phi(\theta^\star)\geq0$.
+All quantities below are integrable: the recursion and
+$\norm{u+v}^2\leq2\norm u^2+2\norm v^2$ give finite $\E\norm{e_t}^2$
+by induction. Conditional Jensen gives
+$\norm{\nabla\Phi(\theta_t)}^2\leq\E[\norm{g_t}^2\mid\mathcal F_t]\leq G^2$.
+Convexity then implies $0\leq\Delta_t\leq G\norm{e_t}$.
+
+\textbf{(a)} Expand the squared distance and condition on $\mathcal F_t$:
+\begin{align*}
+ \E[\norm{e_{t+1}}^2\mid\mathcal F_t]
+ &=\norm{e_t}^2-2\eta_t e_t^\top\E[g_t\mid\mathcal F_t]
+ +\eta_t^2\E[\norm{g_t}^2\mid\mathcal F_t]\\
+ &\leq\norm{e_t}^2-2\eta_t e_t^\top\nabla\Phi(\theta_t)+\eta_t^2G^2.
+\end{align*}
+Convexity at $\theta_t$ gives
+\[
+ \Phi(\theta^\star)\geq\Phi(\theta_t)
+ +\nabla\Phi(\theta_t)^\top(\theta^\star-\theta_t),
+ \qquad e_t^\top\nabla\Phi(\theta_t)\geq\Delta_t.
+\]
+Since $\eta_t>0$, substitution gives
+\[
+ \boxed{\E[\norm{e_{t+1}}^2\mid\mathcal F_t]
+ \leq\norm{e_t}^2-2\eta_t\Delta_t+\eta_t^2G^2.}
+\]
+
+\textbf{(b)} Take expectations in (a), rearrange, and sum:
+\begin{align*}
+ 2\sum_{t=1}^T\eta_t\E\Delta_t
+ &\leq\sum_{t=1}^T
+ \left(\E\norm{e_t}^2-\E\norm{e_{t+1}}^2\right)+G^2Q_T\\
+ &=\E\norm{e_1}^2-\E\norm{e_{T+1}}^2+G^2Q_T
+ \leq R^2+G^2Q_T.
+\end{align*}
+Since $\eta_t/S_T>0$ and their sum is one, convexity gives, pathwise,
+\[
+ \Phi(\overline\theta_T^{(\eta)})-\Phi(\theta^\star)
+ \leq\frac1{S_T}\sum_{t=1}^T\eta_t\Delta_t.
+\]
+Taking expectations proves
+\[
+ \boxed{\E[\Phi(\overline\theta_T^{(\eta)})]-\Phi(\theta^\star)
+ \leq\frac{R^2+G^2Q_T}{2S_T}.}
+\]
+
+\textbf{(c)} For a fixed horizon $T$, set $\eta_t=c/\sqrt T$.
+Then $S_T=c\sqrt T$, $Q_T=c^2$, and
+$\overline\theta_T^{(\eta)}=T^{-1}\sum_{t=1}^T\theta_t=\overline\theta_T$.
+The bound in (b) becomes
+\[
+ \E[\Phi(\overline\theta_T)]-\Phi(\theta^\star)
+ \leq\frac1{2\sqrt T}\left(\frac{R^2}{c}+G^2c\right).
+\]
+For $c>0$,
+\[
+ \frac{R^2}{c}+G^2c-2RG
+ =\left(\frac R{\sqrt c}-G\sqrt c\right)^2\geq0,
+\]
+with equality exactly when $c=R/G$ (positive since $R,G>0$).
+This choice gives
+\[
+ \boxed{\E[\Phi(\overline\theta_T)]-\Phi(\theta^\star)\leq\frac{RG}{\sqrt T}}.
+\]
+\end{document}

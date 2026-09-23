@@ -4,7 +4,8 @@
 
 - 课程主页：https://yangwenhaosms.github.io/dlrl.html
 - 教师：Wenhao Yang
-- 本页课程信息核对日期：2026-09-14；后续安排以课程主页为准。
+- 本页课程信息核对日期：2026-09-23；后续安排以课程主页为准。
+- 后续作业与项目遵循 [作业要求文档](COURSEWORK_REQUIREMENTS.md)，包括代码规范、数学证明及独立中文详解要求。
 
 ## 目录
 
@@ -12,6 +13,7 @@
 assignments/       每次作业的题目、解答、代码及提交版本
   hw01/            第一次作业
   hw02/            第二次作业
+  hw03/            第三次作业
 projects/          项目代码、实验记录、报告及提交版本
 notes/             课堂笔记与复习资料
 materials/         讲义及其他课程资料
@@ -23,7 +25,8 @@ materials/         讲义及其他课程资料
 | --- | --- | --- | --- | --- | --- |
 | Homework 1 | 2026-09-07 | 2026-09-23 | 已完成，未提交 | [hw01](assignments/hw01/) | [PDF](https://yangwenhaosms.github.io/dlrl/hw1.pdf) |
 | Homework 2 | 2026-09-09 | 2026-09-23 | 已完成，未提交 | [hw02](assignments/hw02/) | [PDF](https://yangwenhaosms.github.io/dlrl/hw2.pdf) |
-| Project 1 | 2026-09-07 | 期末考试前（具体日期待公布） | 已完成，未提交 | [pro01](projects/pro01/) | [PDF](https://yangwenhaosms.github.io/dlrl/project.pdf) |
+| Homework 3 | 2026-09-16 | 2026-09-23 | 已完成，未提交 | [hw03](assignments/hw03/) | [PDF](https://yangwenhaosms.github.io/dlrl/hw3.pdf) |
+| Projects（Problems 1–2） | 2026-09-07；2026-09-21 更新 | 期末考试前（具体日期待公布） | 已完成，未提交 | [pro01](projects/pro01/) | [PDF](https://yangwenhaosms.github.io/dlrl/project.pdf) |
 
 ## 解答与报告
 
@@ -31,7 +34,9 @@ materials/         讲义及其他课程资料
 - [HW2 解答](assignments/hw02/solution.pdf)：4 道题的完整推导，保留原题编号；[LaTeX 源文件](assignments/hw02/solution.tex)。
 - [HW1 中文详解](assignments/hw01/solution_zh_detailed.pdf)：逐步计算与依据说明；[LaTeX 源文件](assignments/hw01/solution_zh_detailed.tex)。
 - [HW2 中文详解](assignments/hw02/solution_zh_detailed.pdf)：逐步计算与依据说明；[LaTeX 源文件](assignments/hw02/solution_zh_detailed.tex)。
-- [Project 1 报告](projects/pro01/report.pdf)：实验已实际运行，包含 6 张图及峰值；[代码与复现说明](projects/pro01/README.md)。
+- [HW3 解答](assignments/hw03/solution.pdf)：2 道题的全部小问；[LaTeX 源文件](assignments/hw03/solution.tex)。
+- [HW3 中文详解](assignments/hw03/solution_zh_detailed.pdf)：四阶矩递推、收敛论证及凸 SGD 误差界的逐步推导；[LaTeX 源文件](assignments/hw03/solution_zh_detailed.tex)。
+- [项目报告](projects/pro01/report.pdf)：Problem 1 的 6 张图与峰值，以及 Problem 2 的证明、置信区间实验和覆盖率图；[代码与复现说明](projects/pro01/README.md)。
 
 原始题目 PDF 已保存在各任务目录。作业解答使用英文，与原题一致。在各作业目录执行 `pdflatex -interaction=nonstopmode -halt-on-error solution.tex` 可重新生成解答 PDF。
 
@@ -43,7 +48,7 @@ materials/         讲义及其他课程资料
 
 ## 使用约定
 
-- 新作业按 `assignments/hw03/`、`assignments/hw04/` 顺序添加，同时更新任务进度。
+- 新作业从 `assignments/hw04/` 起顺序添加，同时更新任务进度。2026-09-23 检查官网时，尚无 HW4；课程原项目文件新增了 Problem 2。
 - 每个项目使用 `projects/<项目名称>/`，按需要建立 `src/`、`experiments/`、`report/` 等子目录。
 - 作业和项目的最终提交文件可放在各自目录的 `submission/` 中。
 - 任务状态可使用：未开始、进行中、待检查、已提交。

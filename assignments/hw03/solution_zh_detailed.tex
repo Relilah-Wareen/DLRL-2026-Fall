@@ -1,0 +1,406 @@
+\documentclass[UTF8,a4paper,11pt,fontset=fandol]{ctexart}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage[hidelinks]{hyperref}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\allowdisplaybreaks
+\newcommand{\E}{\mathbb E}
+\newcommand{\Pp}{\mathbb P}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\title{HW3 中文详解}
+\author{00103335：深度学习与强化学习}
+\date{2026 年秋季}
+\begin{document}
+\pagestyle{plain}
+\maketitle
+本详解按原题顺序说明计算和论证依据。
+
+同目录文件：原题 \texttt{hw3.pdf}，英文解答 \texttt{solution.pdf}。
+
+全篇不额外假设噪声独立、同分布或对称。
+
+\section{随机误差递推：四阶矩、概率阶与几乎处处收敛}
+题设给出
+\[
+ \delta_{t+1}=(1-\lambda\eta_t)\delta_t+\eta_t\xi_t,
+ \qquad\eta_t=\frac{a}{(t+t_0)^\alpha},\qquad\frac12<\alpha\leq1.
+\]
+其中 $\lambda,a>0$，$0<\lambda\eta_t\leq1$；若 $\alpha=1$，还要求
+$2\lambda a>1$。$\mathcal F_t$ 表示时刻 $t$ 已知的信息，
+$\delta_t$ 对这些信息可测，所以取 $\mathcal F_t$ 条件期望时，
+$\delta_t$ 可以像已知量一样移到期望外。噪声满足
+\[
+ \E[\xi_t\mid\mathcal F_t]=0,
+ \qquad\E[|\xi_t|^4\mid\mathcal F_t]\leq\sigma^4.
+\]
+记 $q_t=1-\lambda\eta_t\in[0,1]$、$v_t=\E|\delta_t|^4$。
+
+\subsection*{预备：低阶噪声矩与可积性}
+条件 H\"older 不等式说明，对于 $r=2,3$，
+\[
+ \E[|\xi_t|^r\mid\mathcal F_t]
+ \leq\big(\E[|\xi_t|^4\mid\mathcal F_t]\big)^{r/4}
+ \leq\sigma^r.
+\]
+特别地，条件二阶矩不超过 $\sigma^2$，条件三阶矩的绝对值不超过
+$\E[|\xi_t|^3\mid\mathcal F_t]\leq\sigma^3$。
+零条件均值仅能消去一次噪声项，不能据此消去三次噪声项。
+
+还要先确认每个 $v_t$ 有限。由凸性，
+\[
+ |u+v|^4\leq(|u|+|v|)^4
+ =16\left(\frac{|u|+|v|}{2}\right)^4
+ \leq8(|u|^4+|v|^4).
+\]
+将 $u=q_t\delta_t$、$v=\eta_t\xi_t$ 代入，再取期望，得到
+\[
+ v_{t+1}\leq8q_t^4v_t+8\eta_t^4\E|\xi_t|^4
+ \leq8v_t+8\eta_t^4\sigma^4.
+\]
+由于 $v_1<\infty$，归纳可知任意有限时刻的四阶矩都存在。
+这也保证后续展开的各混合项可积。
+
+\subsection*{(a) 推导四阶矩的收缩递推}
+目标是：任取 $c\in(0,4\lambda)$，最终都能得到
+$v_{t+1}\leq(1-c\eta_t)v_t+C_0\eta_t^3$。
+
+\textbf{第一步：完整展开四次方。}
+因为 $\delta_t$ 是实数，$|\delta_{t+1}|^4=\delta_{t+1}^4$。二项式公式给出
+\begin{align*}
+ (q_t\delta_t+\eta_t\xi_t)^4
+ &=q_t^4\delta_t^4+4q_t^3\delta_t^3\eta_t\xi_t
+   +6q_t^2\delta_t^2\eta_t^2\xi_t^2\\
+ &\quad+4q_t\delta_t\eta_t^3\xi_t^3+\eta_t^4\xi_t^4.
+\end{align*}
+给定 $\mathcal F_t$ 后，第二项的条件期望为零。其余项用预备矩界，
+并使用 $q_t,q_t^2\leq1$，得到
+\begin{align*}
+ \E[|\delta_{t+1}|^4\mid\mathcal F_t]
+ &\leq q_t^4\delta_t^4+6\sigma^2\eta_t^2\delta_t^2
+   +4\sigma^3\eta_t^3|\delta_t|+\sigma^4\eta_t^4.
+\end{align*}
+三阶交叉项可能是正的，所以这里取其绝对值上界，而不是令其为零。
+
+\textbf{第二步：把一次误差项合并到二次误差项。}
+由 $(u-v)^2\geq0$ 可得 $2uv\leq u^2+v^2$。
+取 $u=\sigma\eta_t|\delta_t|$、$v=\sigma^2\eta_t^2$，再乘以 $2$，便有
+\[
+ 4\sigma^3\eta_t^3|\delta_t|
+ \leq2\sigma^2\eta_t^2\delta_t^2+2\sigma^4\eta_t^4.
+\]
+与原有各项合并后，
+\[
+ \E[|\delta_{t+1}|^4\mid\mathcal F_t]
+ \leq q_t^4\delta_t^4+8\sigma^2\eta_t^2\delta_t^2+3\sigma^4\eta_t^4.
+\]
+
+\textbf{第三步：用少量四阶项吸收二阶项。}
+对任意 $\varepsilon>0$，平方非负给出
+\begin{align*}
+ 0&\leq\left(\sqrt{\varepsilon\eta_t}\,\delta_t^2
+      -\frac{4\sigma^2\eta_t^{3/2}}{\sqrt\varepsilon}\right)^2\\
+  &=\varepsilon\eta_t\delta_t^4-8\sigma^2\eta_t^2\delta_t^2
+    +\frac{16\sigma^4}{\varepsilon}\eta_t^3.
+\end{align*}
+移项即得
+\[
+ 8\sigma^2\eta_t^2\delta_t^2
+ \leq\varepsilon\eta_t\delta_t^4
+ +\frac{16\sigma^4}{\varepsilon}\eta_t^3.
+\]
+这样右侧只剩四阶误差和确定性的步长幂次：
+\[
+ \E[|\delta_{t+1}|^4\mid\mathcal F_t]
+ \leq(q_t^4+\varepsilon\eta_t)\delta_t^4
+ +\frac{16\sigma^4}{\varepsilon}\eta_t^3+3\sigma^4\eta_t^4.
+\]
+
+\textbf{第四步：明确选取常数。}
+固定题目指定的 $c<4\lambda$，取 $\varepsilon=(4\lambda-c)/2>0$。
+对 $x\in[0,1]$，
+\[
+ (1-x)^4=1-4x+6x^2-4x^3+x^4\leq1-4x+6x^2,
+\]
+因为最后两项为 $x^3(x-4)\leq0$。
+取 $x=\lambda\eta_t$，则
+\[
+ q_t^4+\varepsilon\eta_t
+ \leq1-4\lambda\eta_t+6\lambda^2\eta_t^2+\varepsilon\eta_t.
+\]
+$\eta_t\to0$，所以可以选定 $t_1$，使所有 $t\geq t_1$ 满足
+$\eta_t\leq1$ 及 $6\lambda^2\eta_t\leq\varepsilon$。此时
+\[
+ q_t^4+\varepsilon\eta_t
+ \leq1-(4\lambda-2\varepsilon)\eta_t=1-c\eta_t,
+ \qquad\eta_t^4\leq\eta_t^3.
+\]
+最后对条件不等式取普通期望，利用全期望公式，得到
+\[
+ \boxed{v_{t+1}\leq(1-c\eta_t)v_t+C_0\eta_t^3},
+ \qquad C_0=\left(\frac{16}{\varepsilon}+3\right)\sigma^4<\infty.
+\]
+$C_0$ 和 $t_1$ 可以依赖固定参数，但都不随 $t$ 改变。
+当 $\sigma=0$ 时同样成立，因为证明没有除以 $\sigma$。
+
+\subsection*{(b) 证明 $v_t\leq C\eta_t^2$}
+这里不能简单把 (a) 的稳态数量级当成证明，因为目标上界
+$C\eta_t^2$ 本身随时间下降。需要比较递推的收缩速度和这个上界的下降速度。
+
+\textbf{第一步：计算目标上界的相邻差。}
+定义
+\[
+ D_t=\frac{\eta_t^2-\eta_{t+1}^2}{\eta_t^3},
+ \quad\text{于是}\quad\eta_{t+1}^2=\eta_t^2-D_t\eta_t^3.
+\]
+令 $s=t+t_0$。代入 $\eta_t=as^{-\alpha}$ 得
+\begin{align*}
+ D_t&=\frac{a^2s^{-2\alpha}-a^2(s+1)^{-2\alpha}}{a^3s^{-3\alpha}}\\
+ &=\frac{s^\alpha}{a}\left[1-\left(1+\frac1s\right)^{-2\alpha}\right].
+\end{align*}
+对函数 $h(u)=(1+u)^{-2\alpha}$ 在 $[0,1/s]$ 使用中值定理，
+存在 $\zeta_s\in(0,1/s)$，使
+\[
+ 1-(1+1/s)^{-2\alpha}
+ =\frac{2\alpha}{s}(1+\zeta_s)^{-2\alpha-1}.
+\]
+因此
+\[
+ D_t=\frac{2\alpha}{a}s^{\alpha-1}(1+\zeta_s)^{-2\alpha-1}
+ \longrightarrow d_*=
+ \begin{cases}0,&\alpha<1,\\2/a,&\alpha=1.\end{cases}
+\]
+
+\textbf{第二步：为什么 $\alpha=1$ 时需要额外条件。}
+我们需要选择两个固定常数，使 $d_*<d<c<4\lambda$。
+当 $\alpha<1$ 时 $d_*=0$，总能选到。
+当 $\alpha=1$ 时，能够选到的充要条件是
+\[
+ \frac2a<4\lambda\quad\Longleftrightarrow\quad2\lambda a>1,
+\]
+正是题设额外给出的条件。因此取上述 $d,c$，并使用 (a) 对这个 $c$ 的结论。
+再选充分大的整数 $N$，使对所有 $t\geq N$，
+\[
+ v_{t+1}\leq(1-c\eta_t)v_t+C_0\eta_t^3,
+ \qquad D_t\leq d,\qquad c\eta_t\leq1.
+\]
+最后一条保证 $1-c\eta_t\geq0$，后面代入上界时不会改变不等号方向。
+
+\textbf{第三步：选定覆盖初始时刻的常数并归纳。}
+取
+\[
+ C\geq\max\left\{\frac{C_0}{c-d},\
+                 \max_{1\leq t\leq N}\frac{v_t}{\eta_t^2}\right\}.
+\]
+有限个 $v_t$ 都有限，所有 $\eta_t>0$，而 $c-d>0$，所以 $C<\infty$。
+此选择首先保证 $1\leq t\leq N$ 时结论成立。
+假设某个 $t\geq N$ 时 $v_t\leq C\eta_t^2$，则
+\begin{align*}
+ v_{t+1}
+ &\leq(1-c\eta_t)C\eta_t^2+C_0\eta_t^3\\
+ &=C\eta_t^2-(Cc-C_0)\eta_t^3\\
+ &\leq C\eta_t^2-Cd\eta_t^3\\
+ &\leq C\eta_t^2-CD_t\eta_t^3=C\eta_{t+1}^2.
+\end{align*}
+第三行因为 $C(c-d)\geq C_0$，第四行因为 $D_t\leq d$。
+归纳完成，得到对所有 $t$ 都成立的
+\[
+ \boxed{\E|\delta_t|^4\leq C\eta_t^2.}
+\]
+
+\subsection*{(c) 从四阶矩推出概率阶}
+$\delta_t=O_P(\sqrt{\eta_t})$ 的含义是：对任意小的 $\epsilon>0$，
+可以找到不依赖 $t$ 的阈值 $M$，使归一化误差
+$|\delta_t|/\sqrt{\eta_t}$ 超过 $M$ 的概率最终不超过 $\epsilon$。
+本题实际上可以得到对所有 $t$ 一致成立的概率界。
+
+因为四次方在非负数上递增，使用 Markov 不等式得到
+\begin{align*}
+ \Pp(|\delta_t|>M\sqrt{\eta_t})
+ &=\Pp(|\delta_t|^4>M^4\eta_t^2)\\
+ &\leq\frac{\E|\delta_t|^4}{M^4\eta_t^2}
+ \leq\frac{C\eta_t^2}{M^4\eta_t^2}=\frac C{M^4}.
+\end{align*}
+若 $C>0$，取 $M>(C/\epsilon)^{1/4}$；若 $C=0$，任取 $M>0$。
+于是右侧小于 $\epsilon$，所以
+\[
+ \boxed{\delta_t=O_P(\sqrt{\eta_t}).}
+\]
+
+\subsection*{(d) 用可求和概率证明几乎处处收敛}
+依概率收敛本身不能直接推出几乎处处收敛。这里利用四阶矩界，
+可以证明固定阈值被超过的概率之和有限。
+因为 $2\alpha>1$，幂级数判别给出
+\[
+ \sum_{t=1}^\infty\eta_t^2
+ =a^2\sum_{t=1}^\infty(t+t_0)^{-2\alpha}<\infty.
+\]
+固定正整数 $k$，由 Markov 不等式，
+\[
+ \Pp(|\delta_t|>1/k)
+ \leq k^4\E|\delta_t|^4\leq Ck^4\eta_t^2.
+\]
+对时间求和可得 $\sum_t\Pp(|\delta_t|>1/k)<\infty$。
+第一 Borel--Cantelli 引理说明：这些事件几乎必然只发生有限次。
+也就是说，存在概率为 $1$ 的事件 $E_k$，在其上最终有 $|\delta_t|\leq1/k$。
+这条引理不要求事件独立。
+
+可数个概率为 $1$ 的事件的交仍然概率为 $1$，所以
+$E=\bigcap_{k=1}^\infty E_k$ 满足 $\Pp(E)=1$。
+在任意固定的 $\omega\in E$ 上，给定 $\epsilon>0$，选取 $1/k<\epsilon$，
+最终便有 $|\delta_t(\omega)|\leq1/k<\epsilon$。这正是逐样本收敛的定义，因此
+\[
+ \boxed{\delta_t\longrightarrow0\quad\text{几乎处处}.}
+\]
+
+\section{凸随机梯度下降的平均误差界}
+题设为
+\[
+ \theta_{t+1}=\theta_t-\eta_tg_t,\qquad
+ \E[g_t\mid\mathcal F_t]=\nabla\Phi(\theta_t),\qquad
+ \E[\norm{g_t}^2\mid\mathcal F_t]\leq G^2.
+\]
+$\Phi$ 凸且可微，在 $\theta^\star$ 处达到最小值。记
+\[
+ e_t=\theta_t-\theta^\star,\qquad
+ \Delta_t=\Phi(\theta_t)-\Phi(\theta^\star)\geq0,
+ \qquad S_T=\sum_{t=1}^T\eta_t,\quad Q_T=\sum_{t=1}^T\eta_t^2.
+\]
+所有步长均为确定的正数，故后面的平均权重不是随机量。
+
+\subsection*{预备：确认取期望是合法的}
+利用 $\norm{u+v}^2\leq2\norm u^2+2\norm v^2$，
+\[
+ \E\norm{e_{t+1}}^2
+ \leq2\E\norm{e_t}^2+2\eta_t^2\E\norm{g_t}^2
+ \leq2\E\norm{e_t}^2+2\eta_t^2G^2.
+\]
+从 $\E\norm{e_1}^2\leq R^2<\infty$ 出发，归纳得到每个有限时刻的二阶矩有限。
+由条件 Jensen 不等式，
+\[
+ \norm{\nabla\Phi(\theta_t)}^2
+ =\norm{\E[g_t\mid\mathcal F_t]}^2
+ \leq\E[\norm{g_t}^2\mid\mathcal F_t]\leq G^2.
+\]
+凸性的一阶不等式给出
+$\Delta_t\leq\nabla\Phi(\theta_t)^\top e_t$，再用 Cauchy--Schwarz 得
+\[
+ 0\leq\Delta_t\leq G\norm{e_t},\qquad
+ \E\Delta_t\leq G\sqrt{\E\norm{e_t}^2}<\infty.
+\]
+故函数值误差可积。展开距离时出现的交叉项也可积，因为
+$\E|e_t^\top g_t|\leq\sqrt{\E\norm{e_t}^2\E\norm{g_t}^2}<\infty$。
+
+\subsection*{(a) 单步条件期望不等式}
+\textbf{第一步：展开距离平方。}
+从 $e_{t+1}=e_t-\eta_tg_t$ 出发，
+\[
+ \norm{e_{t+1}}^2
+ =(e_t-\eta_tg_t)^\top(e_t-\eta_tg_t)
+ =\norm{e_t}^2-2\eta_te_t^\top g_t+\eta_t^2\norm{g_t}^2.
+\]
+对 $\mathcal F_t$ 取条件期望，$e_t$ 可移到期望外，得到
+\begin{align*}
+ \E[\norm{e_{t+1}}^2\mid\mathcal F_t]
+ &=\norm{e_t}^2-2\eta_te_t^\top\E[g_t\mid\mathcal F_t]
+   +\eta_t^2\E[\norm{g_t}^2\mid\mathcal F_t]\\
+ &\leq\norm{e_t}^2-2\eta_te_t^\top\nabla\Phi(\theta_t)+\eta_t^2G^2.
+\end{align*}
+
+\textbf{第二步：把梯度内积换成函数值误差。}
+凸性在基点 $\theta_t$、目标点 $\theta^\star$ 处给出
+\[
+ \Phi(\theta^\star)\geq\Phi(\theta_t)
+ +\nabla\Phi(\theta_t)^\top(\theta^\star-\theta_t).
+\]
+移项得 $e_t^\top\nabla\Phi(\theta_t)\geq\Delta_t$。
+因为 $-2\eta_t<0$，乘上它以后不等号反向，因此
+\[
+ \boxed{\E[\norm{e_{t+1}}^2\mid\mathcal F_t]
+ \leq\norm{e_t}^2-2\eta_t\Delta_t+\eta_t^2G^2.}
+\]
+本题只使用普通凸性，不需要强凸性或梯度 Lipschitz 连续性。
+
+\subsection*{(b) 求和并转成加权平均点的误差}
+\textbf{第一步：去掉条件期望。}
+对 (a) 两边再取期望，并用全期望公式，
+\[
+ \E\norm{e_{t+1}}^2
+ \leq\E\norm{e_t}^2-2\eta_t\E\Delta_t+\eta_t^2G^2.
+\]
+将误差项移到左侧：
+\[
+ 2\eta_t\E\Delta_t
+ \leq\E\norm{e_t}^2-\E\norm{e_{t+1}}^2+\eta_t^2G^2.
+\]
+
+\textbf{第二步：对 $t=1,\ldots,T$ 求和。}
+相邻距离项逐项抵消，故
+\begin{align*}
+ 2\sum_{t=1}^T\eta_t\E\Delta_t
+ &\leq\sum_{t=1}^T\big(\E\norm{e_t}^2-\E\norm{e_{t+1}}^2\big)
+   +G^2\sum_{t=1}^T\eta_t^2\\
+ &=\E\norm{e_1}^2-\E\norm{e_{T+1}}^2+G^2Q_T\\
+ &\leq R^2+G^2Q_T.
+\end{align*}
+最后一步使用初始二阶矩上界，并去掉一个非正项。
+
+\textbf{第三步：使用凸性处理平均点。}
+由于 $S_T>0$，权重 $w_t=\eta_t/S_T$ 满足 $w_t>0$、$\sum_tw_t=1$。
+对每条样本路径，凸性保证
+\[
+ \Phi\left(\overline\theta_T^{(\eta)}\right)
+ =\Phi\left(\sum_{t=1}^Tw_t\theta_t\right)
+ \leq\sum_{t=1}^Tw_t\Phi(\theta_t).
+\]
+减去 $\Phi(\theta^\star)=\sum_tw_t\Phi(\theta^\star)$，再取期望，
+\begin{align*}
+ \E[\Phi(\overline\theta_T^{(\eta)})]-\Phi(\theta^\star)
+ &\leq\frac1{S_T}\sum_{t=1}^T\eta_t\E\Delta_t\\
+ &\leq\boxed{\frac{R^2+G^2Q_T}{2S_T}}.
+\end{align*}
+平均点的函数误差非负，并被一个可积的有限加权和控制，
+所以这里的期望也存在。
+
+\subsection*{(c) 选取常步长的系数}
+题目假设 $R>0$、$G>0$，固定总迭代次数 $T$，取
+$\eta_t\equiv\eta=c/\sqrt T$。
+这里的步长在这一次长度为 $T$ 的运行中不随 $t$ 改变；它不是 $c/\sqrt t$。
+
+\textbf{第一步：代入步长和与平方步长和。}
+\[
+ S_T=T\frac c{\sqrt T}=c\sqrt T,
+ \qquad Q_T=T\frac{c^2}{T}=c^2.
+\]
+因为每一步权重相同，
+\[
+ \overline\theta_T^{(\eta)}
+ =\frac1{T\eta}\sum_{t=1}^T\eta\theta_t
+ =\frac1T\sum_{t=1}^T\theta_t=\overline\theta_T.
+\]
+由 (b)，
+\[
+ \E[\Phi(\overline\theta_T)]-\Phi(\theta^\star)
+ \leq\frac{R^2+G^2c^2}{2c\sqrt T}
+ =\frac1{2\sqrt T}\left(\frac{R^2}{c}+G^2c\right).
+\]
+
+\textbf{第二步：平衡两项，选出最优的保证常数。}
+对 $c>0$，直接配方可得
+\[
+ \frac{R^2}{c}+G^2c-2RG
+ =\left(\frac R{\sqrt c}-G\sqrt c\right)^2\geq0.
+\]
+要使由 (b) 得到的上界达到 $RG/\sqrt T$，令这个平方等于零：
+\[
+ \frac R{\sqrt c}=G\sqrt c
+ \quad\Longleftrightarrow\quad R=Gc
+ \quad\Longleftrightarrow\quad\boxed{c=\frac RG}.
+\]
+$R,G>0$ 保证所选 $c$ 合法。此时 $R^2/c=RG$、$G^2c=RG$，故
+\[
+ \boxed{\E[\Phi(\overline\theta_T)]-\Phi(\theta^\star)
+ \leq\frac{RG+RG}{2\sqrt T}=\frac{RG}{\sqrt T}.}
+\]
+这个选择使上述统一误差上界最小，并不声称每一个具体问题的实际误差都等于该上界。
+\end{document}
